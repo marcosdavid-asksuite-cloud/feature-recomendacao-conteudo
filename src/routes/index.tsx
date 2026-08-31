@@ -630,12 +630,9 @@ function SubMenu() {
           <SubMenuItem key={label} label={label} />
         ))}
         <div className="my-1 h-px bg-[#d3d7da]" />
-        <div className="flex items-center justify-between rounded-md bg-[#fde3d9] px-3 py-2.5 text-sm font-semibold text-[#ff5724]">
-          <div className="flex items-center gap-2.5">
-            <Sparkles className="h-[18px] w-[18px]" />
-            <span>Analytics</span>
-          </div>
-          <CheckCircle2 className="h-4 w-4 text-[#279661]" />
+        <div className="flex items-center gap-2.5 rounded-md bg-[#fde3d9] px-3 py-2.5 text-sm font-semibold text-[#ff5724]">
+          <Sparkles className="h-[18px] w-[18px]" />
+          <span>Analytics</span>
         </div>
         <div className="my-1 h-px bg-[#d3d7da]" />
         {SUBMENU_BOTTOM.map((label) => (
@@ -648,9 +645,8 @@ function SubMenu() {
 
 function SubMenuItem({ label }: { label: string }) {
   return (
-    <div className="flex cursor-pointer items-center justify-between rounded-md px-3 py-2.5 text-sm text-[#132939]/75 hover:bg-[#01111e]/[0.04]">
+    <div className="flex cursor-pointer items-center rounded-md px-3 py-2.5 text-sm text-[#132939]/75 hover:bg-[#01111e]/[0.04]">
       <span>{label}</span>
-      <CheckCircle2 className="h-4 w-4 text-[#279661]" />
     </div>
   );
 }
