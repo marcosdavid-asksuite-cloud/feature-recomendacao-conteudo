@@ -636,6 +636,7 @@ function Index() {
     (a, b) => Number(a.added) - Number(b.added),
   );
   const currentSuggestion = orderedSuggestions[currentSuggestionIndex];
+  const allSuggestionsAdded = suggestions.length > 0 && suggestions.every((s) => s.added);
   const pendingCount = pendingChanges.length + pendingMessageContentCount;
 
   function navigateTo(page: "analytics" | "dataHub") {
@@ -947,26 +948,41 @@ function Index() {
                       </span>
                     </div>
 
-                    {currentSuggestion && (
-                      <SuggestionCarousel
-                        suggestion={currentSuggestion}
-                        total={suggestions.length}
-                        index={currentSuggestionIndex}
-                        addedFlags={orderedSuggestions.map((s) => s.added)}
-                        onPrev={() => goToSuggestion(currentSuggestionIndex - 1)}
-                        onNext={() => goToSuggestion(currentSuggestionIndex + 1)}
-                        onDot={goToSuggestion}
-                        onToggleOcc={() => toggleSuggestionOcc(currentSuggestion.id)}
-                        onOpenInsert={() => openInsertModal(currentSuggestion)}
-                        onOpenView={() =>
-                          setViewModal({
-                            open: true,
-                            title: currentSuggestion.title,
-                            text: currentSuggestion.text,
-                            date: currentSuggestion.newest,
-                          })
-                        }
-                      />
+                    {allSuggestionsAdded ? (
+                      <div className="flex items-center justify-center gap-6 rounded-lg py-6 shadow-[inset_0_0_0_1px_rgba(19,41,57,0.1)]">
+                        <CheckCircle2 className="h-16 w-16 text-[#ff5724]" />
+                        <div className="flex max-w-xs flex-col gap-1">
+                          <span className="text-lg font-medium text-[#01111e]/[0.87]">
+                            Você adicionou todas as sugestões!
+                          </span>
+                          <span className="text-base text-[#01111e]/[0.49]">
+                            Novas recomendações de conteúdo aparecerão aqui no próximo ciclo
+                            mensal.
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      currentSuggestion && (
+                        <SuggestionCarousel
+                          suggestion={currentSuggestion}
+                          total={suggestions.length}
+                          index={currentSuggestionIndex}
+                          addedFlags={orderedSuggestions.map((s) => s.added)}
+                          onPrev={() => goToSuggestion(currentSuggestionIndex - 1)}
+                          onNext={() => goToSuggestion(currentSuggestionIndex + 1)}
+                          onDot={goToSuggestion}
+                          onToggleOcc={() => toggleSuggestionOcc(currentSuggestion.id)}
+                          onOpenInsert={() => openInsertModal(currentSuggestion)}
+                          onOpenView={() =>
+                            setViewModal({
+                              open: true,
+                              title: currentSuggestion.title,
+                              text: currentSuggestion.text,
+                              date: currentSuggestion.newest,
+                            })
+                          }
+                        />
+                      )
                     )}
                   </div>
 
