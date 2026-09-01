@@ -287,6 +287,7 @@ function Index() {
   const [insertModal, setInsertModal] = useState<InsertModalState>(EMPTY_INSERT_MODAL);
   const [viewModal, setViewModal] = useState<ViewModalState>(EMPTY_VIEW_MODAL);
   const [addContentPage, setAddContentPage] = useState<AddContentPageState>(EMPTY_ADD_CONTENT_PAGE);
+  const [pendingMessageContentCount, setPendingMessageContentCount] = useState(0);
 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
@@ -299,7 +300,7 @@ function Index() {
   const [chatDraft, setChatDraft] = useState("");
 
   const currentSuggestion = suggestions[currentSuggestionIndex];
-  const pendingCount = pendingChanges.length;
+  const pendingCount = pendingChanges.length + pendingMessageContentCount;
 
   function toggleConflict(id: number) {
     setConflicts((cs) => cs.map((c) => (c.id === id ? { ...c, expanded: !c.expanded } : c)));
@@ -379,6 +380,7 @@ function Index() {
     const ids = pendingChanges;
     setSuggestions((ss) => ss.map((s) => (ids.includes(s.id) ? { ...s, added: false } : s)));
     setPendingChanges([]);
+    setPendingMessageContentCount(0);
     toast("Alterações descartadas.");
   }
 
@@ -386,6 +388,7 @@ function Index() {
     if (pendingCount === 0) return;
     const n = pendingCount;
     setPendingChanges([]);
+    setPendingMessageContentCount(0);
     toast.success(`${n} ${n === 1 ? "conteúdo publicado" : "conteúdos publicados"} com sucesso!`, {
       description: "Nas próximas conversas sobre o tema, a Sophia já responde.",
     });
@@ -417,6 +420,7 @@ function Index() {
   }
 
   function confirmAddContentPage() {
+    setPendingMessageContentCount((n) => n + 1);
     toast.success(`"${addContentPage.title || "Conteúdo"}" adicionado às alterações pendentes.`, {
       description: "Publique para a Sophia usar este conteúdo.",
     });
@@ -461,7 +465,7 @@ function Index() {
 
         <div className="flex min-h-0 flex-1 overflow-x-auto">
           <IconRail />
-          <SubMenu />
+          <SubMenu publishPending={pendingCount > 0} />
 
           <main className="flex min-w-[640px] flex-1 flex-col gap-6 overflow-auto p-8">
             {addContentPage.open ? (
@@ -684,10 +688,10 @@ function RailIcon({ name }: { name: string }) {
   }
 }
 
-const SUBMENU_TOP = ["Data Hub", "Estilos de comunicação", "Publicar"];
+const SUBMENU_TOP = ["Data Hub", "Estilos de comunicação"];
 const SUBMENU_BOTTOM = ["Automação de etiquetas", "Formulários", "Atendimento humano"];
 
-function SubMenu() {
+function SubMenu({ publishPending }: { publishPending: boolean }) {
   return (
     <aside className="flex w-[254px] flex-shrink-0 flex-col gap-6 overflow-y-auto border-r border-[#01111e]/10 bg-white p-4">
       <div className="flex items-center justify-between py-4">
@@ -704,6 +708,17 @@ function SubMenu() {
         {SUBMENU_TOP.map((label) => (
           <SubMenuItem key={label} label={label} />
         ))}
+        <div className="flex cursor-pointer items-center justify-between rounded-md px-3 py-2.5 text-sm text-[#132939]/75 hover:bg-[#01111e]/[0.04]">
+          <div className="flex items-center gap-2.5">
+            <Rocket className="h-[18px] w-[18px]" />
+            <span>Publicar</span>
+          </div>
+          {publishPending && (
+            <Badge className="rounded-full border-transparent bg-[#fde3d9] text-[11px] font-semibold text-[#9e3d22] hover:bg-[#fde3d9]">
+              Pendente
+            </Badge>
+          )}
+        </div>
         <div className="my-1 h-px bg-[#d3d7da]" />
         <div className="flex items-center gap-2.5 rounded-md bg-[#fde3d9] px-3 py-2.5 text-sm font-semibold text-[#ff5724]">
           <Sparkles className="h-[18px] w-[18px]" />
