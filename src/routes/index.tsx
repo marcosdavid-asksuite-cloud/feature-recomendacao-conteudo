@@ -112,6 +112,7 @@ type ViewModalState = {
   title: string;
   text: string;
   date: string;
+  url?: string | undefined;
   sourceMessage?: string | undefined;
   aiSuggested?: boolean | undefined;
 };
@@ -645,9 +646,15 @@ function Index() {
       title: row.name,
       text: row.content ?? "",
       date: row.updated,
+      url: row.icon === "link" ? row.name : undefined,
       sourceMessage: row.origin?.type === "message" ? row.origin.sourceText : undefined,
       aiSuggested: row.origin?.type === "ai_suggestion",
     });
+  }
+
+  function editViewedContent() {
+    toast("Edição de conteúdo em breve.");
+    setViewModal(EMPTY_VIEW_MODAL);
   }
 
   function toggleConflict(id: number) {
@@ -869,7 +876,7 @@ function Index() {
                 otherContents={otherContents}
                 onDeleteSynced={deleteSyncedContent}
                 onDeleteOther={deleteOtherContent}
-                onViewOther={viewDataHubContent}
+                onViewContent={viewDataHubContent}
               />
             ) : !msgsReviewOpen ? (
               <>
@@ -1010,7 +1017,11 @@ function Index() {
           onConfirm={confirmInsertModal}
         />
 
-        <ViewContentModal state={viewModal} onClose={() => setViewModal(EMPTY_VIEW_MODAL)} />
+        <ViewContentModal
+          state={viewModal}
+          onClose={() => setViewModal(EMPTY_VIEW_MODAL)}
+          onEdit={editViewedContent}
+        />
       </div>
     </TooltipProvider>
   );
@@ -2092,7 +2103,7 @@ function DataHubPage({
   otherContents,
   onDeleteSynced,
   onDeleteOther,
-  onViewOther,
+  onViewContent,
 }: {
   pendingCount: number;
   onDiscard: () => void;
@@ -2101,7 +2112,7 @@ function DataHubPage({
   otherContents: DataHubContent[];
   onDeleteSynced: (id: number) => void;
   onDeleteOther: (id: number) => void;
-  onViewOther: (row: DataHubContent) => void;
+  onViewContent: (row: DataHubContent) => void;
 }) {
   const [activeTab, setActiveTab] = useState<DataHubTabKey>("fonte");
   const [search, setSearch] = useState("");
@@ -2197,8 +2208,12 @@ function DataHubPage({
               </div>
             </div>
 
-            <SyncedContentsTable rows={filteredSynced} onDelete={onDeleteSynced} />
-            <OtherContentsTable rows={filteredOthers} onDelete={onDeleteOther} onView={onViewOther} />
+            <SyncedContentsTable
+              rows={filteredSynced}
+              onDelete={onDeleteSynced}
+              onView={onViewContent}
+            />
+            <OtherContentsTable rows={filteredOthers} onDelete={onDeleteOther} onView={onViewContent} />
           </>
         )}
       </div>
@@ -2279,9 +2294,11 @@ function DataHubActionIcons({
 function SyncedContentsTable({
   rows,
   onDelete,
+  onView,
 }: {
   rows: DataHubContent[];
   onDelete: (id: number) => void;
+  onView: (row: DataHubContent) => void;
 }) {
   return (
     <div className="overflow-hidden rounded border border-[#01111e]/10">
@@ -2315,7 +2332,11 @@ function SyncedContentsTable({
           </span>
           <span className="w-[80px] text-[13px] text-[#132939]/50">{row.expires}</span>
           <div className="w-[110px]">
-            <DataHubActionIcons actions={row.actions} onDelete={() => onDelete(row.id)} />
+            <DataHubActionIcons
+              actions={row.actions}
+              onDelete={() => onDelete(row.id)}
+              onView={() => onView(row)}
+            />
           </div>
         </div>
       ))}
@@ -2391,17 +2412,44 @@ function OtherContentsTable({
   );
 }
 
-function ViewContentModal({ state, onClose }: { state: ViewModalState; onClose: () => void }) {
+function ViewContentModal({
+  state,
+  onClose,
+  onEdit,
+}: {
+  state: ViewModalState;
+  onClose: () => void;
+  onEdit: () => void;
+}) {
+  const [contentSearch, setContentSearch] = useState("");
+
   return (
     <Dialog open={state.open} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="flex w-[780px] max-w-[92vw] flex-col gap-0 p-0">
         <DialogHeader className="gap-1.5 px-6 pt-5 text-left">
           <DialogTitle>{state.title}</DialogTitle>
           <div className="flex items-center gap-2.5 text-xs text-[#616e7c]">
-            <Clock className="h-3.5 w-3.5 text-[#ff5724]" />
-            <span>Atualizado em: {state.date}</span>
-            <span className="text-[#01111e]/10">|</span>
-            <span>Por: Ana Barcellos</span>
+            {state.url && (
+              <>
+                <a
+                  href={state.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={state.url}
+                  className="flex min-w-0 items-center gap-1.5 truncate text-[#ff5724] hover:underline"
+                >
+                  <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
+                  <span className="truncate">{state.url}</span>
+                </a>
+                <span className="flex-shrink-0 text-[#01111e]/10">|</span>
+              </>
+            )}
+            <div className="flex flex-shrink-0 items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5 text-[#ff5724]" />
+              <span>Atualizado em: {state.date}</span>
+            </div>
+            <span className="flex-shrink-0 text-[#01111e]/10">|</span>
+            <span className="flex-shrink-0">Por: Ana Barcellos</span>
           </div>
         </DialogHeader>
 
@@ -2415,25 +2463,49 @@ function ViewContentModal({ state, onClose }: { state: ViewModalState; onClose: 
             </div>
           )}
 
-          <div className="flex items-center justify-between">
-            <span className="text-[13px] font-medium text-[#132939]/75">Conteúdo</span>
-            {state.aiSuggested && (
-              <span className="flex items-center gap-1 rounded-full bg-[#fde3d9] px-2 py-0.5 text-[11px] font-semibold text-[#ff5724]">
-                <Sparkles className="h-3.5 w-3.5" />
-                Conteúdo sugerido pela IA
-              </span>
-            )}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-[13px] font-medium text-[#132939]/75">Conteúdo</span>
+              {state.aiSuggested && (
+                <span className="flex items-center gap-1 rounded-full bg-[#fde3d9] px-2 py-0.5 text-[11px] font-semibold text-[#ff5724]">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Conteúdo sugerido pela IA
+                </span>
+              )}
+            </div>
+            <div className="relative w-56 flex-shrink-0">
+              <Input
+                value={contentSearch}
+                onChange={(e) => setContentSearch(e.target.value)}
+                placeholder="Buscar no conteúdo"
+                className="h-8 pr-8 text-[13px]"
+              />
+              <Search className="absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#132939]/40" />
+            </div>
           </div>
-          <div className="rounded-lg bg-gradient-to-r from-[#fff4fb] to-[#fff9f6] p-4">
-            <span className="text-sm leading-5 text-[#132939]/90">{state.text}</span>
+
+          <div className="max-h-[360px] overflow-y-auto rounded-lg border border-[#01111e]/10 bg-[#f5f7fa] p-4">
+            <span className="whitespace-pre-line text-sm leading-6 text-[#132939]/90">
+              {state.text}
+            </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 border-t border-[#01111e]/10 px-6 py-4">
-          <CheckCircle2 className="h-4 w-4 text-[#ff5724]" />
-          <span className="text-xs text-[#616e7c]">
-            Conteúdo publicado e em uso pela Sophia nas respostas.
-          </span>
+        <div className="flex justify-end gap-3 border-t border-[#01111e]/10 px-6 py-4">
+          <Button variant="ghost" onClick={onClose}>
+            Fechar
+          </Button>
+          <div className="rounded-lg bg-gradient-to-r from-[#d75ba5] to-[#ff5724] p-px">
+            <button
+              onClick={onEdit}
+              className="flex cursor-pointer items-center gap-1.5 rounded-[7px] bg-white px-4 py-2 text-[13px] font-medium"
+            >
+              <Pencil className="h-4 w-4 text-[#ff5724]" />
+              <span className="bg-gradient-to-r from-[#d75ba5] to-[#ff5724] bg-clip-text text-transparent">
+                Editar
+              </span>
+            </button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
