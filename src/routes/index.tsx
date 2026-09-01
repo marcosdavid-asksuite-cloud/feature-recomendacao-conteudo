@@ -496,6 +496,23 @@ function Index() {
                         <span className="text-xl font-medium text-[#132939]/90">{msgs.length}</span>
                       </div>
                     </div>
+
+                    <div className="flex flex-col gap-2">
+                      {msgs.slice(0, 5).map((m) => (
+                        <div
+                          key={m.id}
+                          className="flex items-center gap-3 rounded-md bg-[#f5f7fa] px-3 py-2"
+                        >
+                          <span className="flex-1 truncate text-[13px] text-[#132939]/90">
+                            {m.text}
+                          </span>
+                          <span className="whitespace-nowrap text-xs text-[#132939]/50">
+                            {m.date}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
                     <button
                       onClick={() => setMsgsReviewOpen(true)}
                       className="mx-auto mt-2 flex items-center gap-0.5 text-[13px] font-medium text-[#132939] cursor-pointer"
