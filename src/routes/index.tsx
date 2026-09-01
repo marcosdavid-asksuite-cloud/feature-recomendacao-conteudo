@@ -23,6 +23,7 @@ import {
   Info,
   Lightbulb,
   Link2,
+  Loader2,
   MessageSquare,
   Pencil,
   PenLine,
@@ -192,7 +193,7 @@ const INITIAL_SUGGESTIONS: Suggestion[] = [
     occurrences: 87,
     oldest: "02/08/2026",
     newest: "22/08/2026",
-    added: true,
+    added: false,
     occExpanded: false,
     text: "Aceitamos pets de pequeno porte mediante taxa adicional por diária. É necessário informar a presença do animal no momento da reserva.",
     occList: [
@@ -595,7 +596,7 @@ function Index() {
 
   const [suggestions, setSuggestions] = useState<Suggestion[]>(INITIAL_SUGGESTIONS);
   const [currentSuggestionIndex, setCurrentSuggestionIndex] = useState(0);
-  const [pendingChanges, setPendingChanges] = useState<number[]>([2]);
+  const [pendingChanges, setPendingChanges] = useState<number[]>([]);
 
   const [msgs, setMsgs] = useState<Msg[]>(INITIAL_MSGS);
   const [msgsReviewOpen, setMsgsReviewOpen] = useState(false);
@@ -607,6 +608,7 @@ function Index() {
   const [viewModal, setViewModal] = useState<ViewModalState>(EMPTY_VIEW_MODAL);
   const [addContentPage, setAddContentPage] = useState<AddContentPageState>(EMPTY_ADD_CONTENT_PAGE);
   const [pendingMessageContentCount, setPendingMessageContentCount] = useState(0);
+  const [isPublishing, setIsPublishing] = useState(false);
 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
@@ -745,7 +747,7 @@ function Index() {
   }
 
   function discardChanges() {
-    if (pendingCount === 0) return;
+    if (pendingCount === 0 || isPublishing) return;
     const ids = pendingChanges;
     setSuggestions((ss) => ss.map((s) => (ids.includes(s.id) ? { ...s, added: false } : s)));
     setPendingChanges([]);
@@ -754,13 +756,17 @@ function Index() {
   }
 
   function publishChanges() {
-    if (pendingCount === 0) return;
+    if (pendingCount === 0 || isPublishing) return;
     const n = pendingCount;
-    setPendingChanges([]);
-    setPendingMessageContentCount(0);
-    toast.success(`${n} ${n === 1 ? "conteúdo publicado" : "conteúdos publicados"} com sucesso!`, {
-      description: "Nas próximas conversas sobre o tema, a Sophia já responde.",
-    });
+    setIsPublishing(true);
+    setTimeout(() => {
+      setPendingChanges([]);
+      setPendingMessageContentCount(0);
+      setIsPublishing(false);
+      toast.success(`${n} ${n === 1 ? "conteúdo publicado" : "conteúdos publicados"} com sucesso!`, {
+        description: "Nas próximas conversas sobre o tema, a Sophia já responde.",
+      });
+    }, 1200);
   }
 
   function toggleMsg(id: number) {
@@ -870,6 +876,7 @@ function Index() {
             ) : activePage === "dataHub" ? (
               <DataHubPage
                 pendingCount={pendingCount}
+                isPublishing={isPublishing}
                 onDiscard={discardChanges}
                 onPublish={publishChanges}
                 syncedContents={syncedContents}
@@ -882,6 +889,7 @@ function Index() {
               <>
                 <PageHeader
                   pendingCount={pendingCount}
+                  isPublishing={isPublishing}
                   onDiscard={discardChanges}
                   onPublish={publishChanges}
                   period={period}
@@ -1187,14 +1195,67 @@ function SubMenuItem({ label }: { label: string }) {
   );
 }
 
+function PublishActionsBar({
+  pendingCount,
+  isPublishing,
+  onDiscard,
+  onPublish,
+}: {
+  pendingCount: number;
+  isPublishing: boolean;
+  onDiscard: () => void;
+  onPublish: () => void;
+}) {
+  return (
+    <>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <HelpCircle className="h-[18px] w-[18px]" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Ajuda sobre esta página</TooltipContent>
+      </Tooltip>
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={pendingCount === 0 || isPublishing}
+        onClick={onDiscard}
+      >
+        Descartar alterações
+      </Button>
+      <Button
+        size="sm"
+        disabled={pendingCount === 0 || isPublishing}
+        onClick={onPublish}
+        className="gap-1.5 bg-[#ff5724] text-white hover:bg-[#ff5724]/90 disabled:bg-[#132939]/15 disabled:text-[#132939]/40"
+      >
+        {isPublishing ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Publicando...
+          </>
+        ) : (
+          <>
+            <Rocket className="h-4 w-4" />
+            {pendingCount > 0 ? `Publicar alterações (${pendingCount})` : "Publicar alterações"}
+          </>
+        )}
+      </Button>
+    </>
+  );
+}
+
 function PageHeader({
   pendingCount,
+  isPublishing,
   onDiscard,
   onPublish,
   period,
   onPeriodChange,
 }: {
   pendingCount: number;
+  isPublishing: boolean;
   onDiscard: () => void;
   onPublish: () => void;
   period: string;
@@ -1205,26 +1266,12 @@ function PageHeader({
       <div className="flex items-end justify-between">
         <span className="text-2xl font-medium text-[#132939]/[0.875]">Analytics</span>
         <div className="flex gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline" size="icon" className="h-8 w-8">
-                <HelpCircle className="h-[18px] w-[18px]" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Ajuda sobre esta página</TooltipContent>
-          </Tooltip>
-          <Button variant="outline" size="sm" disabled={pendingCount === 0} onClick={onDiscard}>
-            Descartar alterações
-          </Button>
-          <Button
-            size="sm"
-            disabled={pendingCount === 0}
-            onClick={onPublish}
-            className="gap-1.5 bg-[#ff5724] text-white hover:bg-[#ff5724]/90 disabled:bg-[#132939]/15 disabled:text-[#132939]/40"
-          >
-            <Rocket className="h-4 w-4" />
-            {pendingCount > 0 ? `Publicar alterações (${pendingCount})` : "Publicar alterações"}
-          </Button>
+          <PublishActionsBar
+            pendingCount={pendingCount}
+            isPublishing={isPublishing}
+            onDiscard={onDiscard}
+            onPublish={onPublish}
+          />
         </div>
       </div>
 
@@ -2097,6 +2144,7 @@ type DataHubTabKey = "fonte" | "questionario" | "ensinar";
 
 function DataHubPage({
   pendingCount,
+  isPublishing,
   onDiscard,
   onPublish,
   syncedContents,
@@ -2106,6 +2154,7 @@ function DataHubPage({
   onViewContent,
 }: {
   pendingCount: number;
+  isPublishing: boolean;
   onDiscard: () => void;
   onPublish: () => void;
   syncedContents: DataHubContent[];
@@ -2131,26 +2180,12 @@ function DataHubPage({
           </span>
         </div>
         <div className="flex gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline" size="icon" className="h-8 w-8">
-                <HelpCircle className="h-[18px] w-[18px]" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Ajuda sobre esta página</TooltipContent>
-          </Tooltip>
-          <Button variant="outline" size="sm" disabled={pendingCount === 0} onClick={onDiscard}>
-            Descartar alterações
-          </Button>
-          <Button
-            size="sm"
-            disabled={pendingCount === 0}
-            onClick={onPublish}
-            className="gap-1.5 bg-[#ff5724] text-white hover:bg-[#ff5724]/90 disabled:bg-[#132939]/15 disabled:text-[#132939]/40"
-          >
-            <Rocket className="h-4 w-4" />
-            {pendingCount > 0 ? `Publicar alterações (${pendingCount})` : "Publicar alterações"}
-          </Button>
+          <PublishActionsBar
+            pendingCount={pendingCount}
+            isPublishing={isPublishing}
+            onDiscard={onDiscard}
+            onPublish={onPublish}
+          />
         </div>
       </div>
 
