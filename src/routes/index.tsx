@@ -453,12 +453,6 @@ function Index() {
                     <span className="text-xs font-semibold tracking-wide text-[#132939]/50">
                       SUGESTÕES DE CONTEÚDO
                     </span>
-                    <button
-                      onClick={() => setMsgsReviewOpen(true)}
-                      className="flex items-center gap-0.5 text-[13px] font-medium text-[#132939] cursor-pointer"
-                    >
-                      Ver mensagens não analisadas <ChevronRight className="h-4 w-4" />
-                    </button>
                   </div>
 
                   {currentSuggestion && (
