@@ -9,6 +9,7 @@ import {
   Bot,
   Calendar,
   ChartNoAxesColumn,
+  Check,
   CheckCircle2,
   ChevronDown,
   ChevronLeft,
@@ -951,6 +952,7 @@ function Index() {
                         suggestion={currentSuggestion}
                         total={suggestions.length}
                         index={currentSuggestionIndex}
+                        addedFlags={orderedSuggestions.map((s) => s.added)}
                         onPrev={() => goToSuggestion(currentSuggestionIndex - 1)}
                         onNext={() => goToSuggestion(currentSuggestionIndex + 1)}
                         onDot={goToSuggestion}
@@ -1651,6 +1653,7 @@ function SuggestionCarousel({
   suggestion,
   total,
   index,
+  addedFlags,
   onPrev,
   onNext,
   onDot,
@@ -1661,6 +1664,7 @@ function SuggestionCarousel({
   suggestion: Suggestion;
   total: number;
   index: number;
+  addedFlags: boolean[];
   onPrev: () => void;
   onNext: () => void;
   onDot: (i: number) => void;
@@ -1737,16 +1741,21 @@ function SuggestionCarousel({
           </div>
 
           {!suggestion.added && (
-            <div className="self-center rounded-lg bg-gradient-to-r from-[#d75ba5] to-[#ff5724] p-px">
-              <button
-                onClick={onOpenInsert}
-                className="flex cursor-pointer items-center gap-1.5 rounded-[7px] bg-white px-3 py-2 text-[13px] font-medium"
-              >
-                <Plus className="h-4 w-4 text-[#ff5724]" />
-                <span className="bg-gradient-to-r from-[#d75ba5] to-[#ff5724] bg-clip-text text-transparent">
-                  Adicionar este conteúdo
-                </span>
-              </button>
+            <div className="flex items-center justify-center gap-3">
+              <Button variant="outline" size="sm" onClick={onNext}>
+                Pular sugestão
+              </Button>
+              <div className="rounded-lg bg-gradient-to-r from-[#d75ba5] to-[#ff5724] p-px">
+                <button
+                  onClick={onOpenInsert}
+                  className="flex cursor-pointer items-center gap-1.5 rounded-[7px] bg-white px-3 py-2 text-[13px] font-medium"
+                >
+                  <Plus className="h-4 w-4 text-[#ff5724]" />
+                  <span className="bg-gradient-to-r from-[#d75ba5] to-[#ff5724] bg-clip-text text-transparent">
+                    Adicionar este conteúdo
+                  </span>
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -1756,19 +1765,50 @@ function SuggestionCarousel({
         <ChevronLeft onClick={onPrev} className="h-5 w-5 cursor-pointer text-[#132939]/50" />
         <div className="flex items-center gap-2">
           {Array.from({ length: total }).map((_, i) => (
-            <span
+            <SuggestionStepDot
               key={i}
+              isCurrent={i === index}
+              isAdded={addedFlags[i] ?? false}
               onClick={() => onDot(i)}
-              className={cn(
-                "h-2 w-2 cursor-pointer rounded-full",
-                i === index ? "bg-[#ff5724]" : "bg-[#132939]/15",
-              )}
             />
           ))}
         </div>
         <ChevronRight onClick={onNext} className="h-5 w-5 cursor-pointer text-[#132939]/50" />
       </div>
     </div>
+  );
+}
+
+function SuggestionStepDot({
+  isCurrent,
+  isAdded,
+  onClick,
+}: {
+  isCurrent: boolean;
+  isAdded: boolean;
+  onClick: () => void;
+}) {
+  if (isAdded) {
+    return (
+      <button
+        onClick={onClick}
+        className="flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-[#132939]/40"
+      >
+        <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
+      </button>
+    );
+  }
+
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "h-3 w-3 cursor-pointer rounded-full border transition-colors",
+        isCurrent
+          ? "border-transparent bg-gradient-to-r from-[#d75ba5] to-[#ff5724]"
+          : "border-[#132939]/25 hover:border-[#132939]/40",
+      )}
+    />
   );
 }
 
