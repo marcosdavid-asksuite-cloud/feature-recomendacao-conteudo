@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
+  Database,
   Download,
   ExternalLink,
   Eye,
@@ -30,6 +31,8 @@ import {
   Rocket,
   Search,
   Send,
+  Settings,
+  ShieldCheck,
   Sparkles,
   Trash2,
 } from "lucide-react";
@@ -456,6 +459,89 @@ function buildUnansweredMessage(index: number): Msg {
 
 const INITIAL_MSGS: Msg[] = Array.from({ length: 865 }, (_, index) => buildUnansweredMessage(index));
 
+type DataHubAction = "refresh" | "download" | "eye" | "gear" | "trash";
+
+type DataHubContent = {
+  id: number;
+  name: string;
+  icon: "link" | "file" | "shield";
+  updated: string;
+  nextUpdate?: string;
+  promotional: boolean;
+  expires: string;
+  actions: DataHubAction[];
+};
+
+const INITIAL_SYNCED_CONTENTS: DataHubContent[] = [
+  {
+    id: 1,
+    name: "clima tiempo",
+    icon: "link",
+    updated: "31/08/2026 11:34",
+    nextUpdate: "Em 1 dia",
+    promotional: false,
+    expires: "--",
+    actions: ["refresh", "eye", "gear", "trash"],
+  },
+];
+
+const INITIAL_OTHER_CONTENTS: DataHubContent[] = [
+  {
+    id: 2,
+    name: "Contato",
+    icon: "file",
+    updated: "22/04/2026",
+    promotional: false,
+    expires: "--",
+    actions: ["download", "eye", "gear", "trash"],
+  },
+  {
+    id: 3,
+    name: "https://www.resner.com.br/",
+    icon: "link",
+    updated: "28/04/2026",
+    promotional: false,
+    expires: "--",
+    actions: ["refresh", "download", "eye", "gear", "trash"],
+  },
+  {
+    id: 4,
+    name: "novo doc",
+    icon: "file",
+    updated: "09/07/2026",
+    promotional: false,
+    expires: "--",
+    actions: ["download", "eye", "gear", "trash"],
+  },
+  {
+    id: 5,
+    name: "teste",
+    icon: "file",
+    updated: "15/04/2026",
+    promotional: true,
+    expires: "--",
+    actions: ["download", "eye", "gear", "trash"],
+  },
+  {
+    id: 6,
+    name: "Toalhas",
+    icon: "file",
+    updated: "22/04/2026",
+    promotional: false,
+    expires: "--",
+    actions: ["download", "eye", "gear", "trash"],
+  },
+  {
+    id: 7,
+    name: "Conteúdo Padrão",
+    icon: "shield",
+    updated: "01/09/2026",
+    promotional: false,
+    expires: "--",
+    actions: ["eye"],
+  },
+];
+
 const PERIOD_OPTIONS = ["Hoje", "Última semana", "Últimos 30 dias", "Este mês"];
 
 const EMPTY_INSERT_MODAL: InsertModalState = {
@@ -482,6 +568,8 @@ const EMPTY_ADD_CONTENT_PAGE: AddContentPageState = {
 };
 
 function Index() {
+  const [activePage, setActivePage] = useState<"analytics" | "dataHub">("analytics");
+
   const [period, setPeriod] = useState<string>("Última semana");
   const [conflicts, setConflicts] = useState<Conflict[]>(INITIAL_CONFLICTS);
   const [resolvedCount, setResolvedCount] = useState(6);
@@ -493,6 +581,9 @@ function Index() {
 
   const [msgs, setMsgs] = useState<Msg[]>(INITIAL_MSGS);
   const [msgsReviewOpen, setMsgsReviewOpen] = useState(false);
+
+  const [syncedContents, setSyncedContents] = useState<DataHubContent[]>(INITIAL_SYNCED_CONTENTS);
+  const [otherContents, setOtherContents] = useState<DataHubContent[]>(INITIAL_OTHER_CONTENTS);
 
   const [insertModal, setInsertModal] = useState<InsertModalState>(EMPTY_INSERT_MODAL);
   const [viewModal, setViewModal] = useState<ViewModalState>(EMPTY_VIEW_MODAL);
@@ -514,6 +605,22 @@ function Index() {
   );
   const currentSuggestion = orderedSuggestions[currentSuggestionIndex];
   const pendingCount = pendingChanges.length + pendingMessageContentCount;
+
+  function navigateTo(page: "analytics" | "dataHub") {
+    setActivePage(page);
+    setMsgsReviewOpen(false);
+    setAddContentPage(EMPTY_ADD_CONTENT_PAGE);
+  }
+
+  function deleteSyncedContent(id: number) {
+    setSyncedContents((cs) => cs.filter((c) => c.id !== id));
+    toast("Conteúdo removido do Data Hub.");
+  }
+
+  function deleteOtherContent(id: number) {
+    setOtherContents((cs) => cs.filter((c) => c.id !== id));
+    toast("Conteúdo removido do Data Hub.");
+  }
 
   function toggleConflict(id: number) {
     setConflicts((cs) => cs.map((c) => (c.id === id ? { ...c, expanded: !c.expanded } : c)));
@@ -678,7 +785,11 @@ function Index() {
 
         <div className="flex min-h-0 flex-1 overflow-x-auto">
           <IconRail />
-          <SubMenu publishPending={pendingCount > 0} />
+          <SubMenu
+            publishPending={pendingCount > 0}
+            activePage={activePage}
+            onNavigate={navigateTo}
+          />
 
           <main className="flex min-w-[640px] flex-1 flex-col gap-6 overflow-auto p-8">
             {addContentPage.open ? (
@@ -692,6 +803,16 @@ function Index() {
                 onUrlChange={(url) => setAddContentPage((s) => ({ ...s, url }))}
                 onExtract={extractAddContentPageUrl}
                 onConfirm={confirmAddContentPage}
+              />
+            ) : activePage === "dataHub" ? (
+              <DataHubPage
+                pendingCount={pendingCount}
+                onDiscard={discardChanges}
+                onPublish={publishChanges}
+                syncedContents={syncedContents}
+                otherContents={otherContents}
+                onDeleteSynced={deleteSyncedContent}
+                onDeleteOther={deleteOtherContent}
               />
             ) : !msgsReviewOpen ? (
               <>
@@ -901,10 +1022,18 @@ function RailIcon({ name }: { name: string }) {
   }
 }
 
-const SUBMENU_TOP = ["Data Hub", "Estilos de comunicação"];
+const SUBMENU_TOP = ["Estilos de comunicação"];
 const SUBMENU_BOTTOM = ["Automação de etiquetas", "Formulários", "Atendimento humano"];
 
-function SubMenu({ publishPending }: { publishPending: boolean }) {
+function SubMenu({
+  publishPending,
+  activePage,
+  onNavigate,
+}: {
+  publishPending: boolean;
+  activePage: "analytics" | "dataHub";
+  onNavigate: (page: "analytics" | "dataHub") => void;
+}) {
   return (
     <aside className="flex w-[254px] flex-shrink-0 flex-col gap-6 overflow-y-auto border-r border-[#01111e]/10 bg-white p-4">
       <div className="flex items-center justify-between py-4">
@@ -918,6 +1047,12 @@ function SubMenu({ publishPending }: { publishPending: boolean }) {
         <ChevronDown className="h-5 w-5 text-[#132939]/60" />
       </div>
       <div className="flex flex-col gap-2">
+        <SubMenuNavItem
+          icon={<Database className="h-[18px] w-[18px]" />}
+          label="Data Hub"
+          active={activePage === "dataHub"}
+          onClick={() => onNavigate("dataHub")}
+        />
         {SUBMENU_TOP.map((label) => (
           <SubMenuItem key={label} label={label} />
         ))}
@@ -934,16 +1069,45 @@ function SubMenu({ publishPending }: { publishPending: boolean }) {
           )}
         </div>
         <div className="my-1 h-px bg-[#d3d7da]" />
-        <div className="flex items-center gap-2.5 rounded-md bg-[#fde3d9] px-3 py-2.5 text-sm font-semibold text-[#ff5724]">
-          <Sparkles className="h-[18px] w-[18px]" />
-          <span>Analytics</span>
-        </div>
+        <SubMenuNavItem
+          icon={<Sparkles className="h-[18px] w-[18px]" />}
+          label="Analytics"
+          active={activePage === "analytics"}
+          onClick={() => onNavigate("analytics")}
+        />
         <div className="my-1 h-px bg-[#d3d7da]" />
         {SUBMENU_BOTTOM.map((label) => (
           <SubMenuItem key={label} label={label} />
         ))}
       </div>
     </aside>
+  );
+}
+
+function SubMenuNavItem({
+  icon,
+  label,
+  active,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2.5 text-left text-sm",
+        active
+          ? "bg-[#fde3d9] font-semibold text-[#ff5724]"
+          : "text-[#132939]/75 hover:bg-[#01111e]/[0.04]",
+      )}
+    >
+      {icon}
+      <span>{label}</span>
+    </button>
   );
 }
 
@@ -1857,6 +2021,303 @@ function AddContentPage({
           </Button>
         </div>
       </div>
+    </div>
+  );
+}
+
+type DataHubTabKey = "fonte" | "questionario" | "ensinar";
+
+function DataHubPage({
+  pendingCount,
+  onDiscard,
+  onPublish,
+  syncedContents,
+  otherContents,
+  onDeleteSynced,
+  onDeleteOther,
+}: {
+  pendingCount: number;
+  onDiscard: () => void;
+  onPublish: () => void;
+  syncedContents: DataHubContent[];
+  otherContents: DataHubContent[];
+  onDeleteSynced: (id: number) => void;
+  onDeleteOther: (id: number) => void;
+}) {
+  const [activeTab, setActiveTab] = useState<DataHubTabKey>("fonte");
+  const [search, setSearch] = useState("");
+
+  const query = search.trim().toLowerCase();
+  const filteredSynced = syncedContents.filter((c) => c.name.toLowerCase().includes(query));
+  const filteredOthers = otherContents.filter((c) => c.name.toLowerCase().includes(query));
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex items-end justify-between">
+        <div className="flex flex-col gap-1">
+          <span className="text-2xl font-medium text-[#132939]/[0.875]">Data hub</span>
+          <span className="text-[13px] text-[#616e7c]">
+            Gerencie suas fontes de conteúdo da Sophia
+          </span>
+        </div>
+        <div className="flex gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="icon" className="h-8 w-8">
+                <HelpCircle className="h-[18px] w-[18px]" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Ajuda sobre esta página</TooltipContent>
+          </Tooltip>
+          <Button variant="outline" size="sm" disabled={pendingCount === 0} onClick={onDiscard}>
+            Descartar alterações
+          </Button>
+          <Button
+            size="sm"
+            disabled={pendingCount === 0}
+            onClick={onPublish}
+            className="gap-1.5 bg-[#ff5724] text-white hover:bg-[#ff5724]/90 disabled:bg-[#132939]/15 disabled:text-[#132939]/40"
+          >
+            <Rocket className="h-4 w-4" />
+            {pendingCount > 0 ? `Publicar alterações (${pendingCount})` : "Publicar alterações"}
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-4 rounded-lg bg-white p-4 shadow-[0px_1px_2px_rgba(42,48,66,0.16)]">
+        <div className="flex gap-6 border-b border-[#01111e]/10">
+          <DataHubTab
+            label="Fonte de dados"
+            active={activeTab === "fonte"}
+            onClick={() => setActiveTab("fonte")}
+          />
+          <DataHubTab
+            label="Questionário"
+            active={activeTab === "questionario"}
+            onClick={() => setActiveTab("questionario")}
+          />
+          <DataHubTab
+            label="Ensinar robô"
+            active={activeTab === "ensinar"}
+            onClick={() => setActiveTab("ensinar")}
+          />
+        </div>
+
+        {activeTab !== "fonte" ? (
+          <div className="px-3 py-16 text-center text-sm text-[#132939]/50">
+            Conteúdo em construção.
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between gap-3">
+              <div className="relative w-72">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#132939]/40" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Procurar conteúdo"
+                  className="pl-9"
+                />
+              </div>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => toast("Lista de conteúdos atualizada.")}
+                  className="flex cursor-pointer items-center gap-1.5 text-[13px] font-medium text-[#132939]/75"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Atualizar lista
+                </button>
+                <Button
+                  variant="outline"
+                  className="gap-1.5 border-[#ff5724] text-[#ff5724] hover:bg-[#ff5724]/10 hover:text-[#ff5724]"
+                  onClick={() => toast("Funcionalidade de adicionar conteúdo em breve.")}
+                >
+                  <Plus className="h-4 w-4" />
+                  Adicionar conteúdo
+                </Button>
+              </div>
+            </div>
+
+            <SyncedContentsTable rows={filteredSynced} onDelete={onDeleteSynced} />
+            <OtherContentsTable rows={filteredOthers} onDelete={onDeleteOther} />
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DataHubTab({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "cursor-pointer border-b-2 pb-3 text-[13px] font-semibold uppercase tracking-wide",
+        active ? "border-[#ff5724] text-[#ff5724]" : "border-transparent text-[#132939]/50 hover:text-[#132939]/75",
+      )}
+    >
+      {label}
+    </button>
+  );
+}
+
+function PromoBadge({ value }: { value: boolean }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold uppercase",
+        value ? "bg-[#dcf5e6] text-[#279661]" : "bg-[#01111e]/[0.06] text-[#132939]/60",
+      )}
+    >
+      {value ? "Sim" : "Não"}
+    </span>
+  );
+}
+
+function DataHubContentIcon({ icon }: { icon: DataHubContent["icon"] }) {
+  if (icon === "link") return <Link2 className="h-4 w-4 flex-shrink-0" />;
+  if (icon === "shield") return <ShieldCheck className="h-4 w-4 flex-shrink-0" />;
+  return <FileText className="h-4 w-4 flex-shrink-0" />;
+}
+
+function DataHubActionIcons({
+  actions,
+  onDelete,
+}: {
+  actions: DataHubAction[];
+  onDelete: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-end gap-2">
+      {actions.includes("refresh") && (
+        <RefreshCw
+          onClick={() => toast("Sincronização iniciada.")}
+          className="h-4 w-4 cursor-pointer text-[#132939]/60"
+        />
+      )}
+      {actions.includes("download") && <Download className="h-4 w-4 cursor-pointer text-[#132939]/60" />}
+      {actions.includes("eye") && <Eye className="h-4 w-4 cursor-pointer text-[#132939]/60" />}
+      {actions.includes("gear") && <Settings className="h-4 w-4 cursor-pointer text-[#132939]/60" />}
+      {actions.includes("trash") && (
+        <Trash2 onClick={onDelete} className="h-4 w-4 cursor-pointer text-[#132939]/60" />
+      )}
+    </div>
+  );
+}
+
+function SyncedContentsTable({
+  rows,
+  onDelete,
+}: {
+  rows: DataHubContent[];
+  onDelete: (id: number) => void;
+}) {
+  return (
+    <div className="overflow-hidden rounded border border-[#01111e]/10">
+      <div className="flex items-center gap-4 border-b border-[#01111e]/10 bg-[#fde3d9] px-3 py-2">
+        <span className="flex-1 text-[13px] font-semibold text-[#9e3d22]">
+          Conteúdos sincronizados
+        </span>
+        <span className="w-[140px] text-[13px] font-semibold text-[#9e3d22]">
+          Última atualização
+        </span>
+        <span className="w-[140px] text-[13px] font-semibold text-[#9e3d22]">
+          Próxima atualização
+        </span>
+        <span className="w-[90px] text-[13px] font-semibold text-[#9e3d22]">Promocional</span>
+        <span className="w-[80px] text-[13px] font-semibold text-[#9e3d22]">Expira em</span>
+        <span className="w-[110px]" />
+      </div>
+      {rows.map((row) => (
+        <div
+          key={row.id}
+          className="flex items-center gap-4 border-b border-[#01111e]/10 px-3 py-3 last:border-0"
+        >
+          <span className="flex flex-1 items-center gap-2 text-sm font-medium text-[#ff5724]">
+            <DataHubContentIcon icon={row.icon} />
+            {row.name}
+          </span>
+          <span className="w-[140px] text-[13px] text-[#132939]/75">{row.updated}</span>
+          <span className="w-[140px] text-[13px] text-[#132939]/75">{row.nextUpdate ?? "--"}</span>
+          <span className="w-[90px]">
+            <PromoBadge value={row.promotional} />
+          </span>
+          <span className="w-[80px] text-[13px] text-[#132939]/50">{row.expires}</span>
+          <div className="w-[110px]">
+            <DataHubActionIcons actions={row.actions} onDelete={() => onDelete(row.id)} />
+          </div>
+        </div>
+      ))}
+      {rows.length === 0 && (
+        <div className="px-3 py-8 text-center text-sm text-[#132939]/50">
+          Nenhum conteúdo sincronizado encontrado.
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OtherContentsTable({
+  rows,
+  onDelete,
+}: {
+  rows: DataHubContent[];
+  onDelete: (id: number) => void;
+}) {
+  return (
+    <div className="overflow-hidden rounded border border-[#01111e]/10">
+      <div className="flex items-center gap-4 border-b border-[#01111e]/10 bg-[#f5f7fa] px-3 py-2">
+        <span className="flex-1 text-[13px] font-semibold text-[#132939]/75">Outros conteúdos</span>
+        <span className="w-[140px] text-[13px] font-semibold text-[#132939]/75">
+          Última atualização
+        </span>
+        <span className="w-[90px] text-[13px] font-semibold text-[#132939]/75">Promocional</span>
+        <span className="w-[80px] text-[13px] font-semibold text-[#132939]/75">Expira em</span>
+        <span className="w-[130px]" />
+      </div>
+      {rows.map((row) => {
+        const isDefault = row.icon === "shield";
+        return (
+          <div
+            key={row.id}
+            className={cn(
+              "flex items-center gap-4 border-b border-[#01111e]/10 px-3 py-3 last:border-0",
+              isDefault && "text-[#132939]/50",
+            )}
+          >
+            <span
+              className={cn(
+                "flex flex-1 items-center gap-2 text-sm",
+                isDefault ? "text-[#132939]/50" : "font-medium text-[#132939]/90",
+              )}
+            >
+              <DataHubContentIcon icon={row.icon} />
+              {row.name}
+            </span>
+            <span className="w-[140px] text-[13px] text-[#132939]/75">{row.updated}</span>
+            <span className="w-[90px]">
+              <PromoBadge value={row.promotional} />
+            </span>
+            <span className="w-[80px] text-[13px] text-[#132939]/50">{row.expires}</span>
+            <div className="w-[130px]">
+              <DataHubActionIcons actions={row.actions} onDelete={() => onDelete(row.id)} />
+            </div>
+          </div>
+        );
+      })}
+      {rows.length === 0 && (
+        <div className="px-3 py-8 text-center text-sm text-[#132939]/50">
+          Nenhum conteúdo encontrado.
+        </div>
+      )}
     </div>
   );
 }
