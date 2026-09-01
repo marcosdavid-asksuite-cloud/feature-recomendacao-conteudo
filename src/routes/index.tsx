@@ -1066,7 +1066,7 @@ function SuggestionCarousel({
             )}
             <div className="flex-1" />
             {suggestion.added && (
-              <div className="inline-block rounded-lg bg-gradient-to-r from-[#d75ba5] to-[#ff5724] p-px">
+              <div className="inline-flex rounded-lg bg-gradient-to-r from-[#d75ba5] to-[#ff5724] p-px">
                 <button
                   onClick={onOpenView}
                   className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-[7px] bg-white"
