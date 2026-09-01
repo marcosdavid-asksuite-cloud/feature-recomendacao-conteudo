@@ -1133,10 +1133,7 @@ function SubMenu({
           <SubMenuItem key={label} label={label} />
         ))}
         <div className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2.5 text-sm text-[#132939]/75 hover:bg-[#01111e]/[0.04]">
-          <span className="relative inline-flex h-[18px] w-[18px] flex-shrink-0">
-            <Rocket className="h-[18px] w-[18px] text-[#5b6b79]" />
-            <span className="absolute bottom-0 left-0 h-[7px] w-[7px] rounded-full bg-[#e0982b]" />
-          </span>
+          <Rocket className="h-[18px] w-[18px] flex-shrink-0 text-[#5b6b79]" />
           <span>Publicar</span>
           {publishPending && (
             <Badge className="ml-2 rounded-md border-transparent bg-[#fde8be] px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#8a5a12] shadow-none hover:bg-[#fde8be]">
