@@ -948,41 +948,41 @@ function Index() {
                       </span>
                     </div>
 
-                    {allSuggestionsAdded ? (
-                      <div className="flex items-center justify-center gap-6 rounded-lg py-6 shadow-[inset_0_0_0_1px_rgba(19,41,57,0.1)]">
-                        <CheckCircle2 className="h-16 w-16 text-[#ff5724]" />
-                        <div className="flex max-w-xs flex-col gap-1">
-                          <span className="text-lg font-medium text-[#01111e]/[0.87]">
+                    {allSuggestionsAdded && (
+                      <div className="flex items-center gap-4 rounded-lg px-5 py-4 shadow-[inset_0_0_0_1px_rgba(19,41,57,0.1)]">
+                        <CheckCircle2 className="h-10 w-10 flex-shrink-0 text-[#ff5724]" />
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-base font-medium text-[#01111e]/[0.87]">
                             Você adicionou todas as sugestões!
                           </span>
-                          <span className="text-base text-[#01111e]/[0.49]">
+                          <span className="text-[13px] text-[#01111e]/[0.49]">
                             Novas recomendações de conteúdo aparecerão aqui no próximo ciclo
                             mensal.
                           </span>
                         </div>
                       </div>
-                    ) : (
-                      currentSuggestion && (
-                        <SuggestionCarousel
-                          suggestion={currentSuggestion}
-                          total={suggestions.length}
-                          index={currentSuggestionIndex}
-                          addedFlags={orderedSuggestions.map((s) => s.added)}
-                          onPrev={() => goToSuggestion(currentSuggestionIndex - 1)}
-                          onNext={() => goToSuggestion(currentSuggestionIndex + 1)}
-                          onDot={goToSuggestion}
-                          onToggleOcc={() => toggleSuggestionOcc(currentSuggestion.id)}
-                          onOpenInsert={() => openInsertModal(currentSuggestion)}
-                          onOpenView={() =>
-                            setViewModal({
-                              open: true,
-                              title: currentSuggestion.title,
-                              text: currentSuggestion.text,
-                              date: currentSuggestion.newest,
-                            })
-                          }
-                        />
-                      )
+                    )}
+
+                    {currentSuggestion && (
+                      <SuggestionCarousel
+                        suggestion={currentSuggestion}
+                        total={suggestions.length}
+                        index={currentSuggestionIndex}
+                        addedFlags={orderedSuggestions.map((s) => s.added)}
+                        onPrev={() => goToSuggestion(currentSuggestionIndex - 1)}
+                        onNext={() => goToSuggestion(currentSuggestionIndex + 1)}
+                        onDot={goToSuggestion}
+                        onToggleOcc={() => toggleSuggestionOcc(currentSuggestion.id)}
+                        onOpenInsert={() => openInsertModal(currentSuggestion)}
+                        onOpenView={() =>
+                          setViewModal({
+                            open: true,
+                            title: currentSuggestion.title,
+                            text: currentSuggestion.text,
+                            date: currentSuggestion.newest,
+                          })
+                        }
+                      />
                     )}
                   </div>
 
