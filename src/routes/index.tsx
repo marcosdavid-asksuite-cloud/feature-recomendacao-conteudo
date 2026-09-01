@@ -449,32 +449,34 @@ function Index() {
 
                   <MonthlyAnalysisBanner suggestionsCount={suggestions.length} />
 
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold tracking-wide text-[#132939]/50">
-                      SUGESTÕES DE CONTEÚDO
-                    </span>
-                  </div>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold tracking-wide text-[#132939]/50">
+                        SUGESTÕES DE CONTEÚDO
+                      </span>
+                    </div>
 
-                  {currentSuggestion && (
-                    <SuggestionCarousel
-                      suggestion={currentSuggestion}
-                      total={suggestions.length}
-                      index={currentSuggestionIndex}
-                      onPrev={() => goToSuggestion(currentSuggestionIndex - 1)}
-                      onNext={() => goToSuggestion(currentSuggestionIndex + 1)}
-                      onDot={goToSuggestion}
-                      onToggleOcc={() => toggleSuggestionOcc(currentSuggestion.id)}
-                      onOpenInsert={() => openInsertModal(currentSuggestion)}
-                      onOpenView={() =>
-                        setViewModal({
-                          open: true,
-                          title: currentSuggestion.title,
-                          text: currentSuggestion.text,
-                          date: currentSuggestion.newest,
-                        })
-                      }
-                    />
-                  )}
+                    {currentSuggestion && (
+                      <SuggestionCarousel
+                        suggestion={currentSuggestion}
+                        total={suggestions.length}
+                        index={currentSuggestionIndex}
+                        onPrev={() => goToSuggestion(currentSuggestionIndex - 1)}
+                        onNext={() => goToSuggestion(currentSuggestionIndex + 1)}
+                        onDot={goToSuggestion}
+                        onToggleOcc={() => toggleSuggestionOcc(currentSuggestion.id)}
+                        onOpenInsert={() => openInsertModal(currentSuggestion)}
+                        onOpenView={() =>
+                          setViewModal({
+                            open: true,
+                            title: currentSuggestion.title,
+                            text: currentSuggestion.text,
+                            date: currentSuggestion.newest,
+                          })
+                        }
+                      />
+                    )}
+                  </div>
 
                   <div className="h-px bg-[#01111e]/10" />
 
