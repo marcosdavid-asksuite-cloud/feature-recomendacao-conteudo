@@ -113,6 +113,7 @@ type InsertModalState = ContentFormState & {
 
 type AddContentPageState = ContentFormState & {
   open: boolean;
+  sourceMessageId: number | null;
   sourceText: string;
   sourceDate: string;
 };
@@ -586,6 +587,7 @@ const EMPTY_VIEW_MODAL: ViewModalState = { open: false, title: "", text: "", dat
 
 const EMPTY_ADD_CONTENT_PAGE: AddContentPageState = {
   open: false,
+  sourceMessageId: null,
   sourceText: "",
   sourceDate: "",
   tab: "escrever",
@@ -789,6 +791,7 @@ function Index() {
   function openAddContentPage(msg: Msg) {
     setAddContentPage({
       open: true,
+      sourceMessageId: msg.id,
       sourceText: msg.text,
       sourceDate: msg.date,
       tab: "escrever",
@@ -805,6 +808,9 @@ function Index() {
 
   function confirmAddContentPage() {
     setPendingMessageContentCount((n) => n + 1);
+    if (addContentPage.sourceMessageId !== null) {
+      setMsgs((ms) => ms.filter((m) => m.id !== addContentPage.sourceMessageId));
+    }
     setOtherContents((cs) => [
       ...cs,
       {
