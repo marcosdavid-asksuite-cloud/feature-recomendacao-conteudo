@@ -1741,10 +1741,7 @@ function SuggestionCarousel({
           </div>
 
           {!suggestion.added && (
-            <div className="flex items-center justify-center gap-3">
-              <Button variant="outline" size="sm" onClick={onNext}>
-                Pular sugestão
-              </Button>
+            <div className="flex flex-col items-center gap-2">
               <div className="rounded-lg bg-gradient-to-r from-[#d75ba5] to-[#ff5724] p-px">
                 <button
                   onClick={onOpenInsert}
@@ -1756,6 +1753,12 @@ function SuggestionCarousel({
                   </span>
                 </button>
               </div>
+              <button
+                onClick={onNext}
+                className="cursor-pointer text-[13px] font-medium text-[#132939]/60 hover:text-[#132939]/80"
+              >
+                Pular sugestão
+              </button>
             </div>
           )}
         </div>
