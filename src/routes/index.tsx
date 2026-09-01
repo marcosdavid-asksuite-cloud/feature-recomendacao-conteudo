@@ -1446,6 +1446,7 @@ function ContentFormFields({
   onUrlChange,
   onExtract,
   tabsListClassName,
+  showAiSuggestedBadge = true,
 }: {
   state: ContentFormState;
   onTabChange: (tab: ModalTab) => void;
@@ -1455,6 +1456,7 @@ function ContentFormFields({
   onUrlChange: (v: string) => void;
   onExtract: () => void;
   tabsListClassName?: string;
+  showAiSuggestedBadge?: boolean;
 }) {
   return (
     <>
@@ -1494,10 +1496,12 @@ function ContentFormFields({
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
               <span className="text-[13px] font-medium text-[#132939]/75">Conteúdo</span>
-              <span className="flex items-center gap-1 rounded-full bg-[#fde3d9] px-2 py-0.5 text-[11px] font-semibold text-[#ff5724]">
-                <Sparkles className="h-3.5 w-3.5" />
-                Conteúdo sugerido pela IA
-              </span>
+              {showAiSuggestedBadge && (
+                <span className="flex items-center gap-1 rounded-full bg-[#fde3d9] px-2 py-0.5 text-[11px] font-semibold text-[#ff5724]">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Conteúdo sugerido pela IA
+                </span>
+              )}
             </div>
             <Textarea
               value={state.content}
@@ -1624,6 +1628,7 @@ function AddContentPage({
           onFileChange={onFileChange}
           onUrlChange={onUrlChange}
           onExtract={onExtract}
+          showAiSuggestedBadge={false}
         />
 
         <div className="flex justify-end gap-3 pt-1">
