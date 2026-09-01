@@ -712,12 +712,13 @@ function SubMenu({ publishPending }: { publishPending: boolean }) {
           <div className="flex items-center gap-2.5">
             <Rocket className="h-[18px] w-[18px]" />
             <span>Publicar</span>
+            {publishPending && (
+              <Badge className="rounded-full border-transparent bg-[#fde3d9] text-[11px] font-semibold uppercase text-[#9e3d22] hover:bg-[#fde3d9]">
+                pendente
+              </Badge>
+            )}
           </div>
-          {publishPending && (
-            <Badge className="rounded-full border-transparent bg-[#fde3d9] text-[11px] font-semibold text-[#9e3d22] hover:bg-[#fde3d9]">
-              Pendente
-            </Badge>
-          )}
+          <ChevronRight className="h-4 w-4 text-[#132939]/40" />
         </div>
         <div className="my-1 h-px bg-[#d3d7da]" />
         <div className="flex items-center gap-2.5 rounded-md bg-[#fde3d9] px-3 py-2.5 text-sm font-semibold text-[#ff5724]">
