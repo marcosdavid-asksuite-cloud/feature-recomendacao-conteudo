@@ -45,6 +45,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -1583,7 +1589,7 @@ function MonthlyAnalysisBanner({ suggestionsCount }: { suggestionsCount: number 
           </Badge>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Download className="ml-auto h-[18px] w-[18px] cursor-pointer text-[#132939]/50" />
+              <Info className="ml-auto h-3.5 w-3.5 cursor-help text-[#132939]/50" />
             </TooltipTrigger>
             <TooltipContent className="max-w-xs">
               A cada mês, a Sophia analisa uma amostra de conversas não entendidas para identificar
@@ -1591,6 +1597,22 @@ function MonthlyAnalysisBanner({ suggestionsCount }: { suggestionsCount: number 
               acima.
             </TooltipContent>
           </Tooltip>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Download className="h-[18px] w-[18px] cursor-pointer text-[#132939]/50" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => toast("Baixando relatório em CSV...")}>
+                Baixar CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => toast("Baixando relatório em XLSX...")}>
+                Baixar XLSX
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => toast("Baixando relatório em PDF...")}>
+                Baixar PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <span className="text-[13px] text-[#616e7c]">
           Atendimentos com mensagens não entendidas
