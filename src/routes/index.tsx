@@ -13,10 +13,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
-  Copy,
   Download,
   ExternalLink,
   Eye,
+  FilePlus2,
   FileText,
   HelpCircle,
   Info,
@@ -514,7 +514,7 @@ function Index() {
                       onClick={() => setMsgsReviewOpen(true)}
                       className="mx-auto mt-2 flex items-center gap-0.5 text-[13px] font-medium text-[#132939] cursor-pointer"
                     >
-                      Ver mensagens <ChevronRight className="h-4 w-4" />
+                      Ver todas <ChevronRight className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
@@ -1227,9 +1227,9 @@ function MessageRow({
       <Checkbox checked={msg.checked} onCheckedChange={() => onToggle(msg.id)} />
       <span className="flex-1 text-sm text-[#132939]/90">{msg.text}</span>
       <span className="w-[140px] text-[13px] text-[#132939]/60">{msg.date}</span>
-      <div className="flex w-20 gap-1.5">
+      <div className="flex w-24 gap-3">
         <ExternalLink className="h-[18px] w-[18px] cursor-pointer text-[#132939]/60" />
-        <Copy
+        <FilePlus2
           onClick={() => onCopy(msg.text)}
           className="h-[18px] w-[18px] cursor-pointer text-[#132939]/60"
         />
