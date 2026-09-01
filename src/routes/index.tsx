@@ -1741,23 +1741,15 @@ function SuggestionCarousel({
           </div>
 
           {!suggestion.added && (
-            <div className="flex flex-col items-center gap-2">
-              <div className="rounded-lg bg-gradient-to-r from-[#d75ba5] to-[#ff5724] p-px">
-                <button
-                  onClick={onOpenInsert}
-                  className="flex cursor-pointer items-center gap-1.5 rounded-[7px] bg-white px-3 py-2 text-[13px] font-medium"
-                >
-                  <Plus className="h-4 w-4 text-[#ff5724]" />
-                  <span className="bg-gradient-to-r from-[#d75ba5] to-[#ff5724] bg-clip-text text-transparent">
-                    Adicionar este conteúdo
-                  </span>
-                </button>
-              </div>
+            <div className="self-center rounded-lg bg-gradient-to-r from-[#d75ba5] to-[#ff5724] p-px">
               <button
-                onClick={onNext}
-                className="cursor-pointer text-[13px] font-medium text-[#132939]/60 hover:text-[#132939]/80"
+                onClick={onOpenInsert}
+                className="flex cursor-pointer items-center gap-1.5 rounded-[7px] bg-white px-3 py-2 text-[13px] font-medium"
               >
-                Pular sugestão
+                <Plus className="h-4 w-4 text-[#ff5724]" />
+                <span className="bg-gradient-to-r from-[#d75ba5] to-[#ff5724] bg-clip-text text-transparent">
+                  Adicionar este conteúdo
+                </span>
               </button>
             </div>
           )}
