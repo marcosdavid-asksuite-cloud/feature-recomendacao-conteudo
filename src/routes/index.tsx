@@ -509,7 +509,10 @@ function Index() {
   ]);
   const [chatDraft, setChatDraft] = useState("");
 
-  const currentSuggestion = suggestions[currentSuggestionIndex];
+  const orderedSuggestions = [...suggestions].sort(
+    (a, b) => Number(a.added) - Number(b.added),
+  );
+  const currentSuggestion = orderedSuggestions[currentSuggestionIndex];
   const pendingCount = pendingChanges.length + pendingMessageContentCount;
 
   function toggleConflict(id: number) {
