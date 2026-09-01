@@ -85,14 +85,23 @@ type Msg = { id: number; text: string; date: string; checked: boolean };
 
 type ModalTab = "escrever" | "arquivo" | "url";
 
-type InsertModalState = {
-  open: boolean;
-  suggestionId: number | null;
+type ContentFormState = {
   tab: ModalTab;
   title: string;
   content: string;
   fileName: string;
   url: string;
+};
+
+type InsertModalState = ContentFormState & {
+  open: boolean;
+  suggestionId: number | null;
+};
+
+type AddContentPageState = ContentFormState & {
+  open: boolean;
+  sourceText: string;
+  sourceDate: string;
 };
 
 type ViewModalState = { open: boolean; title: string; text: string; date: string };
@@ -251,6 +260,17 @@ const EMPTY_INSERT_MODAL: InsertModalState = {
 
 const EMPTY_VIEW_MODAL: ViewModalState = { open: false, title: "", text: "", date: "" };
 
+const EMPTY_ADD_CONTENT_PAGE: AddContentPageState = {
+  open: false,
+  sourceText: "",
+  sourceDate: "",
+  tab: "escrever",
+  title: "",
+  content: "",
+  fileName: "",
+  url: "",
+};
+
 function Index() {
   const [period, setPeriod] = useState<string>("Última semana");
   const [conflicts, setConflicts] = useState<Conflict[]>(INITIAL_CONFLICTS);
@@ -266,6 +286,7 @@ function Index() {
 
   const [insertModal, setInsertModal] = useState<InsertModalState>(EMPTY_INSERT_MODAL);
   const [viewModal, setViewModal] = useState<ViewModalState>(EMPTY_VIEW_MODAL);
+  const [addContentPage, setAddContentPage] = useState<AddContentPageState>(EMPTY_ADD_CONTENT_PAGE);
 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
@@ -378,9 +399,41 @@ function Index() {
     setMsgs((ms) => ms.filter((m) => m.id !== id));
   }
 
-  function copyMsg(text: string) {
-    navigator.clipboard?.writeText(text).catch(() => {});
-    toast("Mensagem copiada.");
+  function openAddContentPage(msg: Msg) {
+    setAddContentPage({
+      open: true,
+      sourceText: msg.text,
+      sourceDate: msg.date,
+      tab: "escrever",
+      title: "",
+      content: "",
+      fileName: "",
+      url: "",
+    });
+  }
+
+  function closeAddContentPage() {
+    setAddContentPage(EMPTY_ADD_CONTENT_PAGE);
+  }
+
+  function confirmAddContentPage() {
+    toast.success(`"${addContentPage.title || "Conteúdo"}" adicionado às alterações pendentes.`, {
+      description: "Publique para a Sophia usar este conteúdo.",
+    });
+    closeAddContentPage();
+  }
+
+  function extractAddContentPageUrl() {
+    if (!addContentPage.url.trim()) return;
+    toast("Extraindo conteúdo da URL informada...");
+    setTimeout(() => {
+      setAddContentPage((s) => ({
+        ...s,
+        tab: "escrever",
+        content: `Conteúdo extraído de ${s.url}. Revise e ajuste o texto antes de publicar.`,
+      }));
+      toast.success("Conteúdo extraído com sucesso.");
+    }, 900);
   }
 
   function sendChatMessage() {
@@ -411,7 +464,19 @@ function Index() {
           <SubMenu />
 
           <main className="flex min-w-[640px] flex-1 flex-col gap-6 overflow-auto p-8">
-            {!msgsReviewOpen ? (
+            {addContentPage.open ? (
+              <AddContentPage
+                state={addContentPage}
+                onBack={closeAddContentPage}
+                onTabChange={(tab) => setAddContentPage((s) => ({ ...s, tab }))}
+                onTitleChange={(title) => setAddContentPage((s) => ({ ...s, title }))}
+                onContentChange={(content) => setAddContentPage((s) => ({ ...s, content }))}
+                onFileChange={(fileName) => setAddContentPage((s) => ({ ...s, fileName }))}
+                onUrlChange={(url) => setAddContentPage((s) => ({ ...s, url }))}
+                onExtract={extractAddContentPageUrl}
+                onConfirm={confirmAddContentPage}
+              />
+            ) : !msgsReviewOpen ? (
               <>
                 <PageHeader
                   pendingCount={pendingCount}
@@ -504,7 +569,7 @@ function Index() {
                           key={m.id}
                           msg={m}
                           onToggle={toggleMsg}
-                          onCopy={copyMsg}
+                          onAddContent={openAddContentPage}
                           onDelete={deleteMsg}
                         />
                       ))}
@@ -525,7 +590,7 @@ function Index() {
                 onBack={() => setMsgsReviewOpen(false)}
                 onToggle={toggleMsg}
                 onDelete={deleteMsg}
-                onCopy={copyMsg}
+                onAddContent={openAddContentPage}
               />
             )}
           </main>
@@ -1157,13 +1222,13 @@ function MessagesReview({
   onBack,
   onToggle,
   onDelete,
-  onCopy,
+  onAddContent,
 }: {
   msgs: Msg[];
   onBack: () => void;
   onToggle: (id: number) => void;
   onDelete: (id: number) => void;
-  onCopy: (text: string) => void;
+  onAddContent: (msg: Msg) => void;
 }) {
   return (
     <div className="flex flex-col gap-6">
@@ -1188,7 +1253,13 @@ function MessagesReview({
       <div className="overflow-hidden rounded border border-[#01111e]/10 bg-white">
         <MessageTableHeader />
         {msgs.map((m) => (
-          <MessageRow key={m.id} msg={m} onToggle={onToggle} onCopy={onCopy} onDelete={onDelete} />
+          <MessageRow
+            key={m.id}
+            msg={m}
+            onToggle={onToggle}
+            onAddContent={onAddContent}
+            onDelete={onDelete}
+          />
         ))}
         {msgs.length === 0 && (
           <div className="px-3 py-8 text-center text-sm text-[#132939]/50">
@@ -1214,12 +1285,12 @@ function MessageTableHeader() {
 function MessageRow({
   msg,
   onToggle,
-  onCopy,
+  onAddContent,
   onDelete,
 }: {
   msg: Msg;
   onToggle: (id: number) => void;
-  onCopy: (text: string) => void;
+  onAddContent: (msg: Msg) => void;
   onDelete: (id: number) => void;
 }) {
   return (
@@ -1230,7 +1301,7 @@ function MessageRow({
       <div className="flex w-24 gap-3">
         <ExternalLink className="h-[18px] w-[18px] cursor-pointer text-[#132939]/60" />
         <FilePlus2
-          onClick={() => onCopy(msg.text)}
+          onClick={() => onAddContent(msg)}
           className="h-[18px] w-[18px] cursor-pointer text-[#132939]/60"
         />
         <Trash2
@@ -1324,115 +1395,16 @@ function InsertContentModal({
           <span className="text-[13px] text-[#616e7c]">{state.title}</span>
         </DialogHeader>
 
-        <Tabs value={state.tab} onValueChange={(v) => onTabChange(v as ModalTab)} className="mt-2">
-          <TabsList className="mx-6 grid w-auto grid-cols-3 bg-transparent p-0">
-            <TabsTrigger
-              value="escrever"
-              className="gap-1.5 rounded-none border-b-2 border-transparent px-0 pb-2.5 data-[state=active]:border-[#ff5724] data-[state=active]:bg-transparent data-[state=active]:text-[#ff5724] data-[state=active]:shadow-none"
-            >
-              <PenLine className="h-4 w-4" />
-              Escrever conteúdo
-            </TabsTrigger>
-            <TabsTrigger
-              value="arquivo"
-              className="gap-1.5 rounded-none border-b-2 border-transparent px-0 pb-2.5 data-[state=active]:border-[#ff5724] data-[state=active]:bg-transparent data-[state=active]:text-[#ff5724] data-[state=active]:shadow-none"
-            >
-              <FileText className="h-4 w-4" />
-              Enviar arquivo
-            </TabsTrigger>
-            <TabsTrigger
-              value="url"
-              className="gap-1.5 rounded-none border-b-2 border-transparent px-0 pb-2.5 data-[state=active]:border-[#ff5724] data-[state=active]:bg-transparent data-[state=active]:text-[#ff5724] data-[state=active]:shadow-none"
-            >
-              <Link2 className="h-4 w-4" />
-              Buscar dados de link
-            </TabsTrigger>
-          </TabsList>
-          <div className="h-px bg-[#01111e]/10" />
-        </Tabs>
-
-        {state.tab === "escrever" && (
-          <div className="flex flex-col gap-4 px-6 py-5">
-            <div className="flex flex-col gap-1.5">
-              <span className="text-[13px] font-medium text-[#132939]/75">Título</span>
-              <Input value={state.title} onChange={(e) => onTitleChange(e.target.value)} />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[13px] font-medium text-[#132939]/75">Conteúdo</span>
-                <span className="flex items-center gap-1 rounded-full bg-[#fde3d9] px-2 py-0.5 text-[11px] font-semibold text-[#ff5724]">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  Conteúdo sugerido pela IA
-                </span>
-              </div>
-              <Textarea
-                value={state.content}
-                onChange={(e) => onContentChange(e.target.value)}
-                className="min-h-[160px] resize-y"
-              />
-              <span className="text-xs text-[#616e7c]">
-                Digite uma frase ou texto com as informações que a Sophia deve utilizar nas
-                respostas.
-              </span>
-            </div>
-          </div>
-        )}
-
-        {state.tab === "arquivo" && (
-          <div className="flex flex-col gap-2 px-6 py-5">
-            <span className="text-[13px] font-medium text-[#132939]/75">Enviar arquivos</span>
-            <div className="flex overflow-hidden rounded-lg border border-[#01111e]/10">
-              <span className="flex-1 px-3 py-2.5 text-sm text-[#132939]/50">
-                {state.fileName || "Nenhum arquivo escolhido"}
-              </span>
-              <label className="flex cursor-pointer items-center gap-1.5 whitespace-nowrap bg-gradient-to-r from-[#e9427a] to-[#ff5724] px-4 py-2.5 text-[13px] font-semibold text-white">
-                <FileText className="h-4 w-4" />
-                Escolher arquivo
-                <input
-                  type="file"
-                  accept=".pdf,.docx,.txt"
-                  className="hidden"
-                  onChange={(e) => onFileChange(e.target.files?.[0]?.name ?? "")}
-                />
-              </label>
-            </div>
-            <span className="text-xs text-[#616e7c]">
-              Arquivos suportados: PDF, DOCX, TXT (máx. 100MB)
-            </span>
-          </div>
-        )}
-
-        {state.tab === "url" && (
-          <div className="flex flex-col gap-2 px-6 py-5">
-            <span className="text-[13px] font-medium text-[#132939]/75">Link do conteúdo</span>
-            <div className="flex overflow-hidden rounded-lg border border-[#01111e]/10">
-              <input
-                value={state.url}
-                onChange={(e) => onUrlChange(e.target.value)}
-                placeholder="https://"
-                className="flex-1 px-3 py-2.5 text-sm outline-none"
-              />
-              <button
-                onClick={onExtract}
-                className="flex cursor-pointer items-center gap-1.5 whitespace-nowrap bg-gradient-to-r from-[#e9427a] to-[#ff5724] px-4 py-2.5 text-[13px] font-semibold text-white"
-              >
-                <Download className="h-4 w-4" />
-                Extrair
-              </button>
-            </div>
-            <span className="text-xs text-[#616e7c]">
-              Informe a url da qual deseja extrair o conteúdo.
-            </span>
-            <div className="mt-1 flex items-start gap-2 rounded-lg bg-[#f5f7fa] p-2.5">
-              <Lightbulb className="h-4 w-4 flex-shrink-0 text-[#ff5724]" />
-              <span className="text-xs leading-[18px] text-[#132939]/75">
-                <strong>Dica importante:</strong> certifique-se de inserir uma página exclusiva
-                sobre um único assunto. Páginas específicas garantem melhor desempenho na
-                compreensão e precisão das respostas da Sophia.
-              </span>
-            </div>
-          </div>
-        )}
+        <ContentFormFields
+          state={state}
+          onTabChange={onTabChange}
+          onTitleChange={onTitleChange}
+          onContentChange={onContentChange}
+          onFileChange={onFileChange}
+          onUrlChange={onUrlChange}
+          onExtract={onExtract}
+          tabsListClassName="mx-6"
+        />
 
         <div className="flex justify-end gap-3 px-6 pb-6 pt-4">
           <Button variant="outline" onClick={onClose}>
@@ -1447,6 +1419,211 @@ function InsertContentModal({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ContentFormFields({
+  state,
+  onTabChange,
+  onTitleChange,
+  onContentChange,
+  onFileChange,
+  onUrlChange,
+  onExtract,
+  tabsListClassName,
+}: {
+  state: ContentFormState;
+  onTabChange: (tab: ModalTab) => void;
+  onTitleChange: (v: string) => void;
+  onContentChange: (v: string) => void;
+  onFileChange: (v: string) => void;
+  onUrlChange: (v: string) => void;
+  onExtract: () => void;
+  tabsListClassName?: string;
+}) {
+  return (
+    <>
+      <Tabs value={state.tab} onValueChange={(v) => onTabChange(v as ModalTab)} className="mt-2">
+        <TabsList className={cn("grid w-auto grid-cols-3 bg-transparent p-0", tabsListClassName)}>
+          <TabsTrigger
+            value="escrever"
+            className="gap-1.5 rounded-none border-b-2 border-transparent px-0 pb-2.5 data-[state=active]:border-[#ff5724] data-[state=active]:bg-transparent data-[state=active]:text-[#ff5724] data-[state=active]:shadow-none"
+          >
+            <PenLine className="h-4 w-4" />
+            Escrever conteúdo
+          </TabsTrigger>
+          <TabsTrigger
+            value="arquivo"
+            className="gap-1.5 rounded-none border-b-2 border-transparent px-0 pb-2.5 data-[state=active]:border-[#ff5724] data-[state=active]:bg-transparent data-[state=active]:text-[#ff5724] data-[state=active]:shadow-none"
+          >
+            <FileText className="h-4 w-4" />
+            Enviar arquivo
+          </TabsTrigger>
+          <TabsTrigger
+            value="url"
+            className="gap-1.5 rounded-none border-b-2 border-transparent px-0 pb-2.5 data-[state=active]:border-[#ff5724] data-[state=active]:bg-transparent data-[state=active]:text-[#ff5724] data-[state=active]:shadow-none"
+          >
+            <Link2 className="h-4 w-4" />
+            Buscar dados de link
+          </TabsTrigger>
+        </TabsList>
+        <div className="h-px bg-[#01111e]/10" />
+      </Tabs>
+
+      {state.tab === "escrever" && (
+        <div className="flex flex-col gap-4 px-6 py-5">
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[13px] font-medium text-[#132939]/75">Título</span>
+            <Input value={state.title} onChange={(e) => onTitleChange(e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[13px] font-medium text-[#132939]/75">Conteúdo</span>
+              <span className="flex items-center gap-1 rounded-full bg-[#fde3d9] px-2 py-0.5 text-[11px] font-semibold text-[#ff5724]">
+                <Sparkles className="h-3.5 w-3.5" />
+                Conteúdo sugerido pela IA
+              </span>
+            </div>
+            <Textarea
+              value={state.content}
+              onChange={(e) => onContentChange(e.target.value)}
+              className="min-h-[160px] resize-y"
+            />
+            <span className="text-xs text-[#616e7c]">
+              Digite uma frase ou texto com as informações que a Sophia deve utilizar nas
+              respostas.
+            </span>
+          </div>
+        </div>
+      )}
+
+      {state.tab === "arquivo" && (
+        <div className="flex flex-col gap-2 px-6 py-5">
+          <span className="text-[13px] font-medium text-[#132939]/75">Enviar arquivos</span>
+          <div className="flex overflow-hidden rounded-lg border border-[#01111e]/10">
+            <span className="flex-1 px-3 py-2.5 text-sm text-[#132939]/50">
+              {state.fileName || "Nenhum arquivo escolhido"}
+            </span>
+            <label className="flex cursor-pointer items-center gap-1.5 whitespace-nowrap bg-gradient-to-r from-[#e9427a] to-[#ff5724] px-4 py-2.5 text-[13px] font-semibold text-white">
+              <FileText className="h-4 w-4" />
+              Escolher arquivo
+              <input
+                type="file"
+                accept=".pdf,.docx,.txt"
+                className="hidden"
+                onChange={(e) => onFileChange(e.target.files?.[0]?.name ?? "")}
+              />
+            </label>
+          </div>
+          <span className="text-xs text-[#616e7c]">
+            Arquivos suportados: PDF, DOCX, TXT (máx. 100MB)
+          </span>
+        </div>
+      )}
+
+      {state.tab === "url" && (
+        <div className="flex flex-col gap-2 px-6 py-5">
+          <span className="text-[13px] font-medium text-[#132939]/75">Link do conteúdo</span>
+          <div className="flex overflow-hidden rounded-lg border border-[#01111e]/10">
+            <input
+              value={state.url}
+              onChange={(e) => onUrlChange(e.target.value)}
+              placeholder="https://"
+              className="flex-1 px-3 py-2.5 text-sm outline-none"
+            />
+            <button
+              onClick={onExtract}
+              className="flex cursor-pointer items-center gap-1.5 whitespace-nowrap bg-gradient-to-r from-[#e9427a] to-[#ff5724] px-4 py-2.5 text-[13px] font-semibold text-white"
+            >
+              <Download className="h-4 w-4" />
+              Extrair
+            </button>
+          </div>
+          <span className="text-xs text-[#616e7c]">
+            Informe a url da qual deseja extrair o conteúdo.
+          </span>
+          <div className="mt-1 flex items-start gap-2 rounded-lg bg-[#f5f7fa] p-2.5">
+            <Lightbulb className="h-4 w-4 flex-shrink-0 text-[#ff5724]" />
+            <span className="text-xs leading-[18px] text-[#132939]/75">
+              <strong>Dica importante:</strong> certifique-se de inserir uma página exclusiva
+              sobre um único assunto. Páginas específicas garantem melhor desempenho na
+              compreensão e precisão das respostas da Sophia.
+            </span>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function AddContentPage({
+  state,
+  onBack,
+  onTabChange,
+  onTitleChange,
+  onContentChange,
+  onFileChange,
+  onUrlChange,
+  onExtract,
+  onConfirm,
+}: {
+  state: AddContentPageState;
+  onBack: () => void;
+  onTabChange: (tab: ModalTab) => void;
+  onTitleChange: (v: string) => void;
+  onContentChange: (v: string) => void;
+  onFileChange: (v: string) => void;
+  onUrlChange: (v: string) => void;
+  onExtract: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center gap-4 rounded-lg bg-white p-4 shadow-[0px_1px_2px_rgba(42,48,66,0.16)]">
+        <button
+          onClick={onBack}
+          className="flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#01111e]/[0.06]"
+        >
+          <ArrowLeft className="h-5 w-5 text-[#132939]/60" />
+        </button>
+        <div className="flex flex-1 flex-col gap-0.5">
+          <span className="text-base font-medium text-[#132939]/90">Inserir conteúdo</span>
+          <span className="text-[13px] text-[#616e7c]">
+            Você poderá preencher apenas uma das opções: arquivo ou link. Ao trocar de aba, os
+            dados inseridos anteriormente serão apagados.
+          </span>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-4 rounded-lg bg-white p-4 shadow-[0px_1px_2px_rgba(42,48,66,0.16)]">
+        <div className="flex flex-col gap-1 rounded-lg bg-[#f5f7fa] p-3.5">
+          <span className="text-[13px] font-medium text-[#132939]/75">Mensagem não entendida</span>
+          <span className="text-sm text-[#132939]/90">&ldquo;{state.sourceText}&rdquo;</span>
+        </div>
+
+        <ContentFormFields
+          state={state}
+          onTabChange={onTabChange}
+          onTitleChange={onTitleChange}
+          onContentChange={onContentChange}
+          onFileChange={onFileChange}
+          onUrlChange={onUrlChange}
+          onExtract={onExtract}
+        />
+
+        <div className="flex justify-end gap-3 pt-1">
+          <Button variant="outline" onClick={onBack}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={onConfirm}
+            className="bg-[#ff5724] font-semibold text-white hover:bg-[#ff5724]/90"
+          >
+            Inserir conteúdo
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
 
