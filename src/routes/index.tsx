@@ -716,7 +716,7 @@ function SubMenu({ publishPending }: { publishPending: boolean }) {
             </span>
             <span>Publicar</span>
             {publishPending && (
-              <Badge className="ml-2 rounded-full border-transparent bg-[#fde8be] px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#8a5a12] hover:bg-[#fde8be]">
+              <Badge className="ml-2 rounded-md border-transparent bg-[#fde8be] px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#8a5a12] shadow-none hover:bg-[#fde8be]">
                 pendente
               </Badge>
             )}
