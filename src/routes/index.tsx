@@ -107,7 +107,14 @@ type AddContentPageState = ContentFormState & {
   sourceDate: string;
 };
 
-type ViewModalState = { open: boolean; title: string; text: string; date: string };
+type ViewModalState = {
+  open: boolean;
+  title: string;
+  text: string;
+  date: string;
+  sourceMessage?: string | undefined;
+  aiSuggested?: boolean | undefined;
+};
 
 type ChatMessage = { id: number; from: "sophia" | "user"; text: string };
 
@@ -457,9 +464,17 @@ function buildUnansweredMessage(index: number): Msg {
   };
 }
 
+function formatDateBR(date: Date): string {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  return `${day}/${month}/${date.getFullYear()}`;
+}
+
 const INITIAL_MSGS: Msg[] = Array.from({ length: 865 }, (_, index) => buildUnansweredMessage(index));
 
 type DataHubAction = "refresh" | "download" | "eye" | "gear" | "trash";
+
+type DataHubContentOrigin = { type: "message"; sourceText: string } | { type: "ai_suggestion" };
 
 type DataHubContent = {
   id: number;
@@ -470,6 +485,8 @@ type DataHubContent = {
   promotional: boolean;
   expires: string;
   actions: DataHubAction[];
+  content?: string;
+  origin?: DataHubContentOrigin;
 };
 
 const INITIAL_SYNCED_CONTENTS: DataHubContent[] = [
@@ -622,6 +639,17 @@ function Index() {
     toast("Conteúdo removido do Data Hub.");
   }
 
+  function viewDataHubContent(row: DataHubContent) {
+    setViewModal({
+      open: true,
+      title: row.name,
+      text: row.content ?? "",
+      date: row.updated,
+      sourceMessage: row.origin?.type === "message" ? row.origin.sourceText : undefined,
+      aiSuggested: row.origin?.type === "ai_suggestion",
+    });
+  }
+
   function toggleConflict(id: number) {
     setConflicts((cs) => cs.map((c) => (c.id === id ? { ...c, expanded: !c.expanded } : c)));
   }
@@ -676,6 +704,20 @@ function Index() {
       ),
     );
     setPendingChanges((p) => [...p, target.id]);
+    setOtherContents((cs) => [
+      ...cs,
+      {
+        id: Date.now(),
+        name: insertModal.title,
+        icon: "file",
+        updated: formatDateBR(new Date()),
+        promotional: false,
+        expires: "--",
+        actions: ["download", "eye", "gear", "trash"],
+        content: insertModal.content,
+        origin: { type: "ai_suggestion" },
+      },
+    ]);
     closeInsertModal();
     toast.success(`"${insertModal.title}" adicionado às alterações pendentes.`, {
       description: "Publique para a Sophia usar este conteúdo.",
@@ -741,6 +783,20 @@ function Index() {
 
   function confirmAddContentPage() {
     setPendingMessageContentCount((n) => n + 1);
+    setOtherContents((cs) => [
+      ...cs,
+      {
+        id: Date.now(),
+        name: addContentPage.title || "Conteúdo sem título",
+        icon: "file",
+        updated: formatDateBR(new Date()),
+        promotional: false,
+        expires: "--",
+        actions: ["download", "eye", "gear", "trash"],
+        content: addContentPage.content,
+        origin: { type: "message", sourceText: addContentPage.sourceText },
+      },
+    ]);
     toast.success(`"${addContentPage.title || "Conteúdo"}" adicionado às alterações pendentes.`, {
       description: "Publique para a Sophia usar este conteúdo.",
     });
@@ -813,6 +869,7 @@ function Index() {
                 otherContents={otherContents}
                 onDeleteSynced={deleteSyncedContent}
                 onDeleteOther={deleteOtherContent}
+                onViewOther={viewDataHubContent}
               />
             ) : !msgsReviewOpen ? (
               <>
@@ -2035,6 +2092,7 @@ function DataHubPage({
   otherContents,
   onDeleteSynced,
   onDeleteOther,
+  onViewOther,
 }: {
   pendingCount: number;
   onDiscard: () => void;
@@ -2043,6 +2101,7 @@ function DataHubPage({
   otherContents: DataHubContent[];
   onDeleteSynced: (id: number) => void;
   onDeleteOther: (id: number) => void;
+  onViewOther: (row: DataHubContent) => void;
 }) {
   const [activeTab, setActiveTab] = useState<DataHubTabKey>("fonte");
   const [search, setSearch] = useState("");
@@ -2139,7 +2198,7 @@ function DataHubPage({
             </div>
 
             <SyncedContentsTable rows={filteredSynced} onDelete={onDeleteSynced} />
-            <OtherContentsTable rows={filteredOthers} onDelete={onDeleteOther} />
+            <OtherContentsTable rows={filteredOthers} onDelete={onDeleteOther} onView={onViewOther} />
           </>
         )}
       </div>
@@ -2191,9 +2250,11 @@ function DataHubContentIcon({ icon }: { icon: DataHubContent["icon"] }) {
 function DataHubActionIcons({
   actions,
   onDelete,
+  onView,
 }: {
   actions: DataHubAction[];
   onDelete: () => void;
+  onView?: () => void;
 }) {
   return (
     <div className="flex items-center justify-end gap-2">
@@ -2204,7 +2265,9 @@ function DataHubActionIcons({
         />
       )}
       {actions.includes("download") && <Download className="h-4 w-4 cursor-pointer text-[#132939]/60" />}
-      {actions.includes("eye") && <Eye className="h-4 w-4 cursor-pointer text-[#132939]/60" />}
+      {actions.includes("eye") && (
+        <Eye onClick={onView} className="h-4 w-4 cursor-pointer text-[#132939]/60" />
+      )}
       {actions.includes("gear") && <Settings className="h-4 w-4 cursor-pointer text-[#132939]/60" />}
       {actions.includes("trash") && (
         <Trash2 onClick={onDelete} className="h-4 w-4 cursor-pointer text-[#132939]/60" />
@@ -2268,9 +2331,11 @@ function SyncedContentsTable({
 function OtherContentsTable({
   rows,
   onDelete,
+  onView,
 }: {
   rows: DataHubContent[];
   onDelete: (id: number) => void;
+  onView: (row: DataHubContent) => void;
 }) {
   return (
     <div className="overflow-hidden rounded border border-[#01111e]/10">
@@ -2308,7 +2373,11 @@ function OtherContentsTable({
             </span>
             <span className="w-[80px] text-[13px] text-[#132939]/50">{row.expires}</span>
             <div className="w-[130px]">
-              <DataHubActionIcons actions={row.actions} onDelete={() => onDelete(row.id)} />
+              <DataHubActionIcons
+                actions={row.actions}
+                onDelete={() => onDelete(row.id)}
+                onView={() => onView(row)}
+              />
             </div>
           </div>
         );
@@ -2337,7 +2406,24 @@ function ViewContentModal({ state, onClose }: { state: ViewModalState; onClose: 
         </DialogHeader>
 
         <div className="flex flex-col gap-3 px-6 py-5">
-          <span className="text-[13px] font-medium text-[#132939]/75">Conteúdo</span>
+          {state.sourceMessage && (
+            <div className="flex flex-col gap-1 rounded-lg bg-[#f5f7fa] p-3.5">
+              <span className="text-[13px] font-medium text-[#132939]/90">
+                Mensagem não entendida
+              </span>
+              <span className="text-sm text-[#132939]/90">&ldquo;{state.sourceMessage}&rdquo;</span>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between">
+            <span className="text-[13px] font-medium text-[#132939]/75">Conteúdo</span>
+            {state.aiSuggested && (
+              <span className="flex items-center gap-1 rounded-full bg-[#fde3d9] px-2 py-0.5 text-[11px] font-semibold text-[#ff5724]">
+                <Sparkles className="h-3.5 w-3.5" />
+                Conteúdo sugerido pela IA
+              </span>
+            )}
+          </div>
           <div className="rounded-lg bg-gradient-to-r from-[#fff4fb] to-[#fff9f6] p-4">
             <span className="text-sm leading-5 text-[#132939]/90">{state.text}</span>
           </div>
