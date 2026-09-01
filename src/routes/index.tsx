@@ -497,19 +497,16 @@ function Index() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col gap-2">
+                    <div className="overflow-hidden rounded border border-[#01111e]/10 bg-white">
+                      <MessageTableHeader />
                       {msgs.slice(0, 5).map((m) => (
-                        <div
+                        <MessageRow
                           key={m.id}
-                          className="flex items-center gap-3 rounded-md bg-[#f5f7fa] px-3 py-2"
-                        >
-                          <span className="flex-1 truncate text-[13px] text-[#132939]/90">
-                            {m.text}
-                          </span>
-                          <span className="whitespace-nowrap text-xs text-[#132939]/50">
-                            {m.date}
-                          </span>
-                        </div>
+                          msg={m}
+                          onToggle={toggleMsg}
+                          onCopy={copyMsg}
+                          onDelete={deleteMsg}
+                        />
                       ))}
                     </div>
 
@@ -1189,38 +1186,57 @@ function MessagesReview({
       </div>
 
       <div className="overflow-hidden rounded border border-[#01111e]/10 bg-white">
-        <div className="flex gap-4 border-b border-[#01111e]/10 bg-[#f5f7fa] px-3 py-2">
-          <span className="w-6" />
-          <span className="flex-1 text-[13px] font-semibold text-[#132939]/75">Mensagem</span>
-          <span className="w-[140px] text-[13px] font-semibold text-[#132939]/75">Data</span>
-          <span className="w-20 text-[13px] font-semibold text-[#132939]/75">Ações</span>
-        </div>
+        <MessageTableHeader />
         {msgs.map((m) => (
-          <div
-            key={m.id}
-            className="flex items-center gap-4 border-b border-[#01111e]/10 px-3 py-3 last:border-0"
-          >
-            <Checkbox checked={m.checked} onCheckedChange={() => onToggle(m.id)} />
-            <span className="flex-1 text-sm text-[#132939]/90">{m.text}</span>
-            <span className="w-[140px] text-[13px] text-[#132939]/60">{m.date}</span>
-            <div className="flex w-20 gap-1.5">
-              <ExternalLink className="h-[18px] w-[18px] cursor-pointer text-[#132939]/60" />
-              <Copy
-                onClick={() => onCopy(m.text)}
-                className="h-[18px] w-[18px] cursor-pointer text-[#132939]/60"
-              />
-              <Trash2
-                onClick={() => onDelete(m.id)}
-                className="h-[18px] w-[18px] cursor-pointer text-[#132939]/60"
-              />
-            </div>
-          </div>
+          <MessageRow key={m.id} msg={m} onToggle={onToggle} onCopy={onCopy} onDelete={onDelete} />
         ))}
         {msgs.length === 0 && (
           <div className="px-3 py-8 text-center text-sm text-[#132939]/50">
             Nenhuma mensagem restante para revisão.
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function MessageTableHeader() {
+  return (
+    <div className="flex gap-4 border-b border-[#01111e]/10 bg-[#f5f7fa] px-3 py-2">
+      <span className="w-6" />
+      <span className="flex-1 text-[13px] font-semibold text-[#132939]/75">Mensagem</span>
+      <span className="w-[140px] text-[13px] font-semibold text-[#132939]/75">Data</span>
+      <span className="w-20 text-[13px] font-semibold text-[#132939]/75">Ações</span>
+    </div>
+  );
+}
+
+function MessageRow({
+  msg,
+  onToggle,
+  onCopy,
+  onDelete,
+}: {
+  msg: Msg;
+  onToggle: (id: number) => void;
+  onCopy: (text: string) => void;
+  onDelete: (id: number) => void;
+}) {
+  return (
+    <div className="flex items-center gap-4 border-b border-[#01111e]/10 px-3 py-3 last:border-0">
+      <Checkbox checked={msg.checked} onCheckedChange={() => onToggle(msg.id)} />
+      <span className="flex-1 text-sm text-[#132939]/90">{msg.text}</span>
+      <span className="w-[140px] text-[13px] text-[#132939]/60">{msg.date}</span>
+      <div className="flex w-20 gap-1.5">
+        <ExternalLink className="h-[18px] w-[18px] cursor-pointer text-[#132939]/60" />
+        <Copy
+          onClick={() => onCopy(msg.text)}
+          className="h-[18px] w-[18px] cursor-pointer text-[#132939]/60"
+        />
+        <Trash2
+          onClick={() => onDelete(msg.id)}
+          className="h-[18px] w-[18px] cursor-pointer text-[#132939]/60"
+        />
       </div>
     </div>
   );
