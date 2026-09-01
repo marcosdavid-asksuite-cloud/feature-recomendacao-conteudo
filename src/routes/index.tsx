@@ -8,12 +8,13 @@ import {
   Bell,
   Bot,
   Calendar,
+  ChartNoAxesColumn,
   CheckCircle2,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   Clock,
-  Database,
   Download,
   ExternalLink,
   Eye,
@@ -34,7 +35,9 @@ import {
   Send,
   Settings,
   ShieldCheck,
+  Share2,
   Sparkles,
+  Tag,
   Trash2,
 } from "lucide-react";
 
@@ -1098,8 +1101,7 @@ function RailIcon({ name }: { name: string }) {
   }
 }
 
-const SUBMENU_TOP = ["Estilos de comunicação"];
-const SUBMENU_BOTTOM = ["Automação de etiquetas", "Formulários", "Atendimento humano"];
+const SETTINGS_ITEMS = ["Estilos de comunicação", "Atendimento humano", "Formulários"];
 
 function SubMenu({
   publishPending,
@@ -1110,6 +1112,8 @@ function SubMenu({
   activePage: "analytics" | "dataHub";
   onNavigate: (page: "analytics" | "dataHub") => void;
 }) {
+  const [settingsOpen, setSettingsOpen] = useState(true);
+
   return (
     <aside className="flex w-[254px] flex-shrink-0 flex-col gap-6 overflow-y-auto border-r border-[#01111e]/10 bg-white p-4">
       <div className="flex items-center justify-between py-4">
@@ -1124,14 +1128,18 @@ function SubMenu({
       </div>
       <div className="flex flex-col gap-2">
         <SubMenuNavItem
-          icon={<Database className="h-[18px] w-[18px]" />}
+          icon={<Share2 className="h-[18px] w-[18px]" />}
           label="Data Hub"
           active={activePage === "dataHub"}
           onClick={() => onNavigate("dataHub")}
         />
-        {SUBMENU_TOP.map((label) => (
-          <SubMenuItem key={label} label={label} />
-        ))}
+        <SubMenuNavItem
+          icon={<ChartNoAxesColumn className="h-[18px] w-[18px]" />}
+          label="Analytics"
+          active={activePage === "analytics"}
+          onClick={() => onNavigate("analytics")}
+        />
+        <SubMenuItem icon={<Tag className="h-[18px] w-[18px]" />} label="Automação de etiquetas" />
         <div className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2.5 text-sm text-[#132939]/75 hover:bg-[#01111e]/[0.04]">
           <Rocket className="h-[18px] w-[18px] flex-shrink-0 text-[#5b6b79]" />
           <span>Publicar</span>
@@ -1141,17 +1149,30 @@ function SubMenu({
             </Badge>
           )}
         </div>
+
         <div className="my-1 h-px bg-[#d3d7da]" />
-        <SubMenuNavItem
-          icon={<Sparkles className="h-[18px] w-[18px]" />}
-          label="Analytics"
-          active={activePage === "analytics"}
-          onClick={() => onNavigate("analytics")}
-        />
-        <div className="my-1 h-px bg-[#d3d7da]" />
-        {SUBMENU_BOTTOM.map((label) => (
-          <SubMenuItem key={label} label={label} />
-        ))}
+
+        <button
+          onClick={() => setSettingsOpen((o) => !o)}
+          className="flex cursor-pointer items-center justify-between rounded-md px-3 py-2.5 text-sm text-[#132939]/75 hover:bg-[#01111e]/[0.04]"
+        >
+          <div className="flex items-center gap-2.5">
+            <Settings className="h-[18px] w-[18px]" />
+            <span>Configurações</span>
+          </div>
+          {settingsOpen ? (
+            <ChevronUp className="h-4 w-4 text-[#132939]/40" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-[#132939]/40" />
+          )}
+        </button>
+        {settingsOpen && (
+          <div className="flex flex-col gap-2 pl-7">
+            {SETTINGS_ITEMS.map((label) => (
+              <SubMenuItem key={label} label={label} />
+            ))}
+          </div>
+        )}
       </div>
     </aside>
   );
@@ -1184,9 +1205,10 @@ function SubMenuNavItem({
   );
 }
 
-function SubMenuItem({ label }: { label: string }) {
+function SubMenuItem({ label, icon }: { label: string; icon?: React.ReactNode }) {
   return (
-    <div className="flex cursor-pointer items-center rounded-md px-3 py-2.5 text-sm text-[#132939]/75 hover:bg-[#01111e]/[0.04]">
+    <div className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2.5 text-sm text-[#132939]/75 hover:bg-[#01111e]/[0.04]">
+      {icon}
       <span>{label}</span>
     </div>
   );
