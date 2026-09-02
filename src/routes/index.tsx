@@ -1805,8 +1805,10 @@ function SuggestionCarousel({
 
           <div className="flex flex-col gap-2">
             <span className="text-[13px] font-medium text-[#132939]/75">Conteúdo sugerido:</span>
-            <div className="rounded-lg bg-gradient-to-r from-[#fff4fb] to-[#fff9f6] p-3.5">
-              <span className="text-sm leading-5 text-[#132939]/90">{suggestion.text}</span>
+            <div className="min-h-[88px] rounded-lg bg-gradient-to-r from-[#fff4fb] to-[#fff9f6] p-3.5">
+              <span className="line-clamp-3 text-sm leading-5 text-[#132939]/90">
+                {suggestion.text}
+              </span>
             </div>
           </div>
 
