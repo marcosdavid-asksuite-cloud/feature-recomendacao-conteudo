@@ -250,7 +250,7 @@ const INITIAL_SUGGESTIONS: Suggestion[] = [
     newest: "21/08/2026",
     added: false,
     occExpanded: false,
-    text: "O hotel conta com estacionamento próprio gratuito para hóspedes, sujeito à disponibilidade de vagas. Também oferecemos serviço de manobrista mediante taxa adicional.",
+    text: "O hotel conta com estacionamento próprio gratuito para hóspedes, sujeito à disponibilidade de vagas. Também oferecemos serviço de manobrista mediante taxa adicional de [VALOR_TAXA_MANOBRISTA].",
     occList: [
       { q: "O estacionamento é gratuito?", t: "21/08/2026" },
       { q: "Tem vaga coberta?", t: "14/08/2026" },
@@ -370,7 +370,7 @@ const INITIAL_SUGGESTIONS: Suggestion[] = [
     newest: "23/08/2026",
     added: false,
     occExpanded: false,
-    text: "O hotel oferece serviço de lavanderia com prazo de entrega em até 24 horas. O valor é cobrado por peça e pode ser solicitado diretamente com a governança.",
+    text: "O hotel oferece serviço de lavanderia com prazo de entrega em até 24 horas. O valor cobrado é de [PRECO_POR_PECA] por peça e pode ser solicitado diretamente com a governança.",
     occList: [
       { q: "Como funciona a lavanderia do hotel?", t: "23/08/2026" },
       { q: "Quanto tempo demora para lavar a roupa?", t: "16/08/2026" },
@@ -400,7 +400,7 @@ const INITIAL_SUGGESTIONS: Suggestion[] = [
     newest: "24/08/2026",
     added: false,
     occExpanded: false,
-    text: "Contamos com salas de reunião equipadas para eventos corporativos e também organizamos casamentos e festas de aniversário mediante orçamento personalizado.",
+    text: "Contamos com salas de reunião equipadas para até [CAPACIDADE_MAXIMA_PESSOAS] pessoas e também organizamos casamentos e festas de aniversário mediante orçamento personalizado. Para solicitar uma proposta, entre em contato pelo [CONTATO_EVENTOS].",
     occList: [
       { q: "Vocês têm espaço para eventos?", t: "24/08/2026" },
       { q: "Fazem casamentos no hotel?", t: "19/08/2026" },
@@ -512,6 +512,12 @@ function isWithinPeriod(dateStr: string, period: string): boolean {
     default:
       return true;
   }
+}
+
+const PLACEHOLDER_PATTERN = /\[[A-Z0-9_]+\]/;
+
+function hasPlaceholder(text: string): boolean {
+  return PLACEHOLDER_PATTERN.test(text);
 }
 
 const INITIAL_MSGS: Msg[] = Array.from({ length: 529 }, (_, index) => buildUnansweredMessage(index));
@@ -2074,6 +2080,7 @@ function InsertContentModal({
           </Button>
           <Button
             onClick={onConfirm}
+            disabled={hasPlaceholder(state.content)}
             className="bg-[#ff5724] font-semibold text-white hover:bg-[#ff5724]/90"
           >
             Inserir conteúdo
@@ -2159,6 +2166,13 @@ function ContentFormFields({
               Digite uma frase ou texto com as informações que a Sophia deve utilizar nas
               respostas.
             </span>
+            {hasPlaceholder(state.content) && (
+              <div className="flex items-center gap-2 rounded-lg bg-[#fde3d9] px-3 py-2 text-xs text-[#9e3d22]">
+                <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                Substitua os campos entre colchetes (ex: [PLACEHOLDER]) por informações reais
+                antes de inserir este conteúdo.
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -2284,6 +2298,7 @@ function AddContentPage({
           </Button>
           <Button
             onClick={onConfirm}
+            disabled={hasPlaceholder(state.content)}
             className="bg-[#ff5724] font-semibold text-white hover:bg-[#ff5724]/90"
           >
             Inserir conteúdo
