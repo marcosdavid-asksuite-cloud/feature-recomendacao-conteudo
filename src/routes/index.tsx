@@ -1811,12 +1811,12 @@ function SuggestionCarousel({
           </div>
 
           {!suggestion.added && (
-            <div className="self-center rounded-lg bg-gradient-to-r from-[#d75ba5] to-[#ff5724] p-px">
+            <div className="mx-auto w-fit max-w-full rounded-lg bg-gradient-to-r from-[#d75ba5] to-[#ff5724] p-px">
               <button
                 onClick={onOpenInsert}
-                className="flex cursor-pointer items-center gap-1.5 rounded-[7px] bg-white px-3 py-2 text-[13px] font-medium"
+                className="flex w-full max-w-full flex-wrap items-center justify-center gap-1.5 rounded-[7px] bg-white px-3 py-2 text-center text-[13px] font-medium"
               >
-                <Plus className="h-4 w-4 text-[#ff5724]" />
+                <Plus className="h-4 w-4 flex-shrink-0 text-[#ff5724]" />
                 <span className="bg-gradient-to-r from-[#d75ba5] to-[#ff5724] bg-clip-text text-transparent">
                   Adicionar este conteúdo
                 </span>
