@@ -1635,11 +1635,11 @@ function ConflictSourceCard({
 
 function MonthlyAnalysisBanner({ suggestionsCount }: { suggestionsCount: number }) {
   return (
-    <div className="flex overflow-hidden rounded-lg shadow-[inset_0_0_0_1px_rgba(19,41,57,0.1)]">
+    <div className="flex overflow-hidden rounded-lg border border-[#01111e]/10 bg-white">
       <div className="flex w-16 flex-shrink-0 items-center justify-center bg-gradient-to-b from-[#f7deed] to-[#fde3d9]">
         <Sparkles className="h-6 w-6 text-[#ff5724]" fill="currentColor" />
       </div>
-      <div className="flex flex-1 flex-col gap-6 bg-gradient-to-r from-[#fdf1f7] to-white px-5 py-5">
+      <div className="flex flex-1 flex-col gap-6 px-5 py-5">
         <div className="flex items-center gap-2">
           <span className="bg-gradient-to-r from-[#d75ba5] to-[#ff5724] bg-clip-text text-[11px] font-bold tracking-wide text-transparent">
             AGOSTO 2026
