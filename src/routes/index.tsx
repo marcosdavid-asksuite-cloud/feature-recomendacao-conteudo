@@ -46,12 +46,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -1621,22 +1615,15 @@ function MonthlyAnalysisBanner({ suggestionsCount }: { suggestionsCount: number 
               acima.
             </TooltipContent>
           </Tooltip>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Download className="h-[18px] w-[18px] cursor-pointer text-[#132939]/50" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => toast("Baixando relatório em CSV...")}>
-                Baixar CSV
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => toast("Baixando relatório em XLSX...")}>
-                Baixar XLSX
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => toast("Baixando relatório em PDF...")}>
-                Baixar PDF
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Download
+                onClick={() => toast("Baixando relatório em PDF...")}
+                className="h-[18px] w-[18px] cursor-pointer text-[#132939]/50"
+              />
+            </TooltipTrigger>
+            <TooltipContent>Baixar PDF</TooltipContent>
+          </Tooltip>
         </div>
         <span className="text-[13px] text-[#616e7c]">
           Atendimentos com mensagens não entendidas
