@@ -67,6 +67,7 @@ type Occurrence = { q: string; t: string };
 
 type Conflict = {
   id: number;
+  date: string;
   expanded: boolean;
   tag: string;
   desc: string;
@@ -128,6 +129,7 @@ type ChatMessage = { id: number; from: "sophia" | "user"; text: string };
 const INITIAL_CONFLICTS: Conflict[] = [
   {
     id: 1,
+    date: "29/08/2026",
     expanded: true,
     tag: "#35",
     desc: "Os trechos apresentam dois horários distintos de check-in",
@@ -153,6 +155,7 @@ const INITIAL_CONFLICTS: Conflict[] = [
   },
   {
     id: 2,
+    date: "12/08/2026",
     expanded: false,
     tag: "#41",
     desc: "Os trechos indicam políticas de cancelamento diferentes",
@@ -458,15 +461,24 @@ const UNANSWERED_MESSAGE_TEMPLATES = [
   "Qual o horário de funcionamento da piscina?",
 ];
 
+const TODAY = new Date(2026, 8, 1);
+
+function addDays(date: Date, days: number): Date {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
 function buildUnansweredMessage(index: number): Msg {
   const template = UNANSWERED_MESSAGE_TEMPLATES[index % UNANSWERED_MESSAGE_TEMPLATES.length]!;
-  const day = String(1 + (index % 30)).padStart(2, "0");
+  const dayOffset = index % 30;
+  const date = addDays(TODAY, -dayOffset);
   const hour = String(6 + (index % 16)).padStart(2, "0");
   const minute = String((index * 7) % 60).padStart(2, "0");
   return {
     id: index + 1,
     text: template,
-    date: `${day}/08/2026 às ${hour}:${minute}`,
+    date: `${formatDateBR(date)} às ${hour}:${minute}`,
     checked: false,
   };
 }
@@ -475,6 +487,29 @@ function formatDateBR(date: Date): string {
   const day = String(date.getDate()).padStart(2, "0");
   const month = String(date.getMonth() + 1).padStart(2, "0");
   return `${day}/${month}/${date.getFullYear()}`;
+}
+
+function parseBRDate(value: string): Date {
+  const [datePart] = value.split(" às ");
+  const [day, month, year] = datePart!.split("/").map(Number);
+  return new Date(year!, month! - 1, day);
+}
+
+function isWithinPeriod(dateStr: string, period: string): boolean {
+  const date = parseBRDate(dateStr);
+  const diffDays = Math.round((TODAY.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+  switch (period) {
+    case "Hoje":
+      return diffDays === 0;
+    case "Última semana":
+      return diffDays >= 0 && diffDays <= 6;
+    case "Últimos 30 dias":
+      return diffDays >= 0 && diffDays <= 29;
+    case "Este mês":
+      return date.getFullYear() === TODAY.getFullYear() && date.getMonth() === TODAY.getMonth();
+    default:
+      return true;
+  }
 }
 
 const INITIAL_MSGS: Msg[] = Array.from({ length: 865 }, (_, index) => buildUnansweredMessage(index));
@@ -632,6 +667,9 @@ function Index() {
   const currentSuggestion = orderedSuggestions[currentSuggestionIndex];
   const allSuggestionsAdded = suggestions.length > 0 && suggestions.every((s) => s.added);
   const pendingCount = pendingChanges.length + pendingMessageContentCount;
+
+  const filteredConflicts = conflicts.filter((c) => isWithinPeriod(c.date, period));
+  const filteredMsgs = msgs.filter((m) => isWithinPeriod(m.date, period));
 
   function navigateTo(page: "analytics" | "dataHub") {
     setActivePage(page);
@@ -908,7 +946,7 @@ function Index() {
                 />
 
                 <ConflictsCard
-                  conflicts={conflicts}
+                  conflicts={filteredConflicts}
                   resolvedCount={resolvedCount}
                   ignoredCount={ignoredCount}
                   onToggle={toggleConflict}
@@ -995,13 +1033,15 @@ function Index() {
                       </div>
                       <div className="flex items-center gap-1.5">
                         <MessageSquare className="h-5 w-5 text-[#132939]/50" />
-                        <span className="text-xl font-medium text-[#132939]/90">{msgs.length}</span>
+                        <span className="text-xl font-medium text-[#132939]/90">
+                          {filteredMsgs.length}
+                        </span>
                       </div>
                     </div>
 
                     <div className="overflow-hidden rounded border border-[#01111e]/10 bg-white">
                       <MessageTableHeader />
-                      {msgs.slice(0, 5).map((m) => (
+                      {filteredMsgs.slice(0, 5).map((m) => (
                         <MessageRow
                           key={m.id}
                           msg={m}
@@ -1023,7 +1063,7 @@ function Index() {
               </>
             ) : (
               <MessagesReview
-                msgs={msgs}
+                msgs={filteredMsgs}
                 onBack={() => setMsgsReviewOpen(false)}
                 onToggle={toggleMsg}
                 onDelete={deleteMsg}
