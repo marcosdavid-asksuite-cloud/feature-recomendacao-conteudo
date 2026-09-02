@@ -973,12 +973,7 @@ function Index() {
                     <Search className="ml-auto h-5 w-5 cursor-pointer text-[#132939]/90" />
                   </div>
 
-                  <MonthlyAnalysisBanner
-                    suggestionsCount={suggestions.length}
-                    actionsExecuted={
-                      resolvedCount + ignoredCount + suggestions.filter((s) => s.added).length
-                    }
-                  />
+                  <MonthlyAnalysisBanner suggestionsCount={suggestions.length} />
 
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center justify-between">
@@ -1638,41 +1633,35 @@ function ConflictSourceCard({
   );
 }
 
-function MonthlyAnalysisBanner({
-  suggestionsCount,
-  actionsExecuted,
-}: {
-  suggestionsCount: number;
-  actionsExecuted: number;
-}) {
+function MonthlyAnalysisBanner({ suggestionsCount }: { suggestionsCount: number }) {
   return (
     <div className="flex overflow-hidden rounded-lg shadow-[inset_0_0_0_1px_rgba(19,41,57,0.1)]">
       <div className="flex w-16 flex-shrink-0 items-center justify-center bg-gradient-to-b from-[#f7deed] to-[#fde3d9]">
-        <Bot className="h-6 w-6 text-[#ff5724]" />
+        <Sparkles className="h-6 w-6 text-[#ff5724]" fill="currentColor" />
       </div>
-      <div className="flex flex-1 flex-col gap-6 px-5 py-5">
+      <div className="flex flex-1 flex-col gap-6 bg-gradient-to-r from-[#fdf1f7] to-white px-5 py-5">
         <div className="flex items-center gap-2">
-          <Badge className="rounded-full border-transparent bg-[#dcf5e6] text-[11px] font-bold tracking-wide text-[#279661] hover:bg-[#dcf5e6]">
-            Análise concluída
-          </Badge>
-          <Badge className="rounded-full border-transparent bg-[#01111e]/[0.06] text-[11px] font-semibold tracking-wide text-[#132939]/70 hover:bg-[#01111e]/[0.06]">
+          <span className="bg-gradient-to-r from-[#d75ba5] to-[#ff5724] bg-clip-text text-[11px] font-bold tracking-wide text-transparent">
             AGOSTO 2026
+          </span>
+          <Badge className="rounded-full border-transparent bg-gradient-to-r from-[#f7deed] to-[#fde3d9] text-[11px] font-bold tracking-wide text-[#9e3d6e] hover:from-[#f7deed] hover:to-[#fde3d9]">
+            Análise concluída
           </Badge>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Info className="ml-auto h-3.5 w-3.5 cursor-help text-[#132939]/50" />
+              <Info className="h-3.5 w-3.5 cursor-help text-[#132939]/50" />
             </TooltipTrigger>
             <TooltipContent className="max-w-xs">
-              A cada mês, a Sophia analisa uma amostra de conversas não entendidas para identificar
-              oportunidades de conteúdo. Essas sugestões não são filtradas pelo período dos dados
-              acima.
+              Todos os meses, a Sophia analisa uma quantidade de mensagens não entendidas para
+              gerar sugestões de conteúdo baseadas em tópicos que foram muito perguntados mas não
+              tinham conteúdo cadastrado.
             </TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Download
                 onClick={() => toast("Baixando relatório em PDF...")}
-                className="h-[18px] w-[18px] cursor-pointer text-[#132939]/50"
+                className="ml-auto h-[18px] w-[18px] cursor-pointer text-[#132939]/50"
               />
             </TooltipTrigger>
             <TooltipContent>Baixar PDF</TooltipContent>
@@ -1682,14 +1671,6 @@ function MonthlyAnalysisBanner({
           Análise mensal de mensagens não entendidas
         </span>
         <div className="flex items-center gap-10">
-          <div className="flex flex-1 items-center gap-3">
-            <CheckCircle2 className="h-5 w-5 text-[#132939]/50" />
-            <div className="flex flex-col">
-              <span className="text-xl font-semibold text-[#132939]/90">{actionsExecuted}</span>
-              <span className="text-xs text-[#616e7c]">Ações executadas</span>
-            </div>
-          </div>
-          <div className="h-8 w-px bg-[#01111e]/10" />
           <div className="flex flex-1 items-center gap-3">
             <MessageSquare className="h-5 w-5 text-[#132939]/50" />
             <div className="flex flex-col">
@@ -1708,7 +1689,7 @@ function MonthlyAnalysisBanner({
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-6 border-t border-[#01111e]/10 pt-4">
+        <div className="flex flex-col gap-2 border-t border-[#01111e]/10 pt-4">
           <div className="flex items-center gap-2">
             <CalendarCheck className="h-4 w-4 text-[#132939]/50" />
             <span className="text-[13px] text-[#616e7c]">
