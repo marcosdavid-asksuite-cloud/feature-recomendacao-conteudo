@@ -1637,7 +1637,17 @@ function MonthlyAnalysisBanner({ suggestionsCount }: { suggestionsCount: number 
   return (
     <div className="flex overflow-hidden rounded-lg border border-[#01111e]/10 bg-white">
       <div className="flex w-16 flex-shrink-0 items-center justify-center bg-gradient-to-b from-[#f7deed] to-[#fde3d9]">
-        <Sparkles className="h-6 w-6 text-[#ff5724]" fill="currentColor" />
+        <svg width="0" height="0" className="absolute">
+          <linearGradient id="monthlyAnalysisIconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#d75ba5" />
+            <stop offset="100%" stopColor="#ff5724" />
+          </linearGradient>
+        </svg>
+        <Sparkles
+          className="h-6 w-6"
+          fill="url(#monthlyAnalysisIconGradient)"
+          stroke="url(#monthlyAnalysisIconGradient)"
+        />
       </div>
       <div className="flex flex-1 flex-col gap-6 px-5 py-5">
         <div className="flex items-center gap-2">
