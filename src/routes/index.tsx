@@ -130,7 +130,7 @@ const INITIAL_CONFLICTS: Conflict[] = [
   {
     id: 1,
     date: "29/08/2026",
-    expanded: true,
+    expanded: false,
     tag: "#35",
     desc: "Os trechos apresentam dois horários distintos de check-in",
     oldest: "09/08/2026",
