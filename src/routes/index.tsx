@@ -8,6 +8,8 @@ import {
   Bell,
   Bot,
   Calendar,
+  CalendarCheck,
+  CalendarClock,
   ChartNoAxesColumn,
   Check,
   CheckCircle2,
@@ -971,7 +973,12 @@ function Index() {
                     <Search className="ml-auto h-5 w-5 cursor-pointer text-[#132939]/90" />
                   </div>
 
-                  <MonthlyAnalysisBanner suggestionsCount={suggestions.length} />
+                  <MonthlyAnalysisBanner
+                    suggestionsCount={suggestions.length}
+                    actionsExecuted={
+                      resolvedCount + ignoredCount + suggestions.filter((s) => s.added).length
+                    }
+                  />
 
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center justify-between">
@@ -1631,16 +1638,22 @@ function ConflictSourceCard({
   );
 }
 
-function MonthlyAnalysisBanner({ suggestionsCount }: { suggestionsCount: number }) {
+function MonthlyAnalysisBanner({
+  suggestionsCount,
+  actionsExecuted,
+}: {
+  suggestionsCount: number;
+  actionsExecuted: number;
+}) {
   return (
     <div className="flex overflow-hidden rounded-lg shadow-[inset_0_0_0_1px_rgba(19,41,57,0.1)]">
       <div className="flex w-16 flex-shrink-0 items-center justify-center bg-gradient-to-b from-[#f7deed] to-[#fde3d9]">
-        <Sparkles className="h-6 w-6 text-[#ff5724]" />
+        <Bot className="h-6 w-6 text-[#ff5724]" />
       </div>
       <div className="flex flex-1 flex-col gap-6 px-5 py-5">
         <div className="flex items-center gap-2">
-          <Badge className="rounded-full border-transparent bg-[#f7deed] text-[11px] font-bold tracking-wide text-[#9e3d6e] hover:bg-[#f7deed]">
-            ANÁLISE MENSAL
+          <Badge className="rounded-full border-transparent bg-[#dcf5e6] text-[11px] font-bold tracking-wide text-[#279661] hover:bg-[#dcf5e6]">
+            Análise concluída
           </Badge>
           <Badge className="rounded-full border-transparent bg-[#01111e]/[0.06] text-[11px] font-semibold tracking-wide text-[#132939]/70 hover:bg-[#01111e]/[0.06]">
             AGOSTO 2026
@@ -1666,9 +1679,17 @@ function MonthlyAnalysisBanner({ suggestionsCount }: { suggestionsCount: number 
           </Tooltip>
         </div>
         <span className="text-[13px] text-[#616e7c]">
-          Atendimentos com mensagens não entendidas
+          Análise mensal de mensagens não entendidas
         </span>
         <div className="flex items-center gap-10">
+          <div className="flex flex-1 items-center gap-3">
+            <CheckCircle2 className="h-5 w-5 text-[#132939]/50" />
+            <div className="flex flex-col">
+              <span className="text-xl font-semibold text-[#132939]/90">{actionsExecuted}</span>
+              <span className="text-xs text-[#616e7c]">Ações executadas</span>
+            </div>
+          </div>
+          <div className="h-8 w-px bg-[#01111e]/10" />
           <div className="flex flex-1 items-center gap-3">
             <MessageSquare className="h-5 w-5 text-[#132939]/50" />
             <div className="flex flex-col">
@@ -1680,11 +1701,26 @@ function MonthlyAnalysisBanner({ suggestionsCount }: { suggestionsCount: number 
           </div>
           <div className="h-8 w-px bg-[#01111e]/10" />
           <div className="flex flex-1 items-center gap-3">
-            <Sparkles className="h-5 w-5 text-[#132939]/50" />
+            <Lightbulb className="h-5 w-5 text-[#132939]/50" />
             <div className="flex flex-col">
               <span className="text-xl font-semibold text-[#132939]/90">{suggestionsCount}</span>
-              <span className="text-xs text-[#616e7c]">Recomendações de conteúdo</span>
+              <span className="text-xs text-[#616e7c]">Conteúdos sugeridos</span>
             </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-6 border-t border-[#01111e]/10 pt-4">
+          <div className="flex items-center gap-2">
+            <CalendarCheck className="h-4 w-4 text-[#132939]/50" />
+            <span className="text-[13px] text-[#616e7c]">
+              Período analisado: mensagens entre <strong>01/08/2026</strong> até{" "}
+              <strong>31/08/2026</strong>
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CalendarClock className="h-4 w-4 text-[#132939]/50" />
+            <span className="text-[13px] text-[#616e7c]">
+              Próxima análise: <strong>01/10/2026</strong>
+            </span>
           </div>
         </div>
       </div>
