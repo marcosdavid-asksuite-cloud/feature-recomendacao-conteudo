@@ -2614,7 +2614,7 @@ function ViewContentModal({
 
   return (
     <Dialog open={state.open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="flex w-[780px] max-w-[92vw] flex-col gap-0 p-0">
+      <DialogContent className="flex max-h-[90vh] w-[780px] max-w-[92vw] flex-col gap-0 p-0">
         <DialogHeader className="gap-1.5 px-6 pt-5 text-left">
           <DialogTitle>{state.title}</DialogTitle>
           <div className="flex items-center gap-2.5 text-xs text-[#616e7c]">
@@ -2673,7 +2673,7 @@ function ViewContentModal({
             </div>
           </div>
 
-          <div className="max-h-[360px] overflow-y-auto rounded-lg border border-[#01111e]/10 bg-[#f5f7fa] p-4">
+          <div className="h-[420px] overflow-y-auto rounded-lg border border-[#01111e]/10 bg-[#f5f7fa] p-4">
             <span className="whitespace-pre-line text-sm leading-6 text-[#132939]/90">
               {state.text}
             </span>
