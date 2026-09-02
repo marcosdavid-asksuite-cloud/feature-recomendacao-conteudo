@@ -512,7 +512,7 @@ function isWithinPeriod(dateStr: string, period: string): boolean {
   }
 }
 
-const INITIAL_MSGS: Msg[] = Array.from({ length: 865 }, (_, index) => buildUnansweredMessage(index));
+const INITIAL_MSGS: Msg[] = Array.from({ length: 529 }, (_, index) => buildUnansweredMessage(index));
 
 type DataHubAction = "refresh" | "download" | "eye" | "gear" | "trash";
 
