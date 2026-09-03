@@ -1735,11 +1735,16 @@ function SuggestionCarousel({
   return (
     <div className="flex flex-col gap-3.5">
       <div className="rounded-[9px] bg-gradient-to-r from-[#f3cee4] to-[#fad0c4] p-px">
-        <div className="flex flex-col gap-4 rounded-lg bg-white p-5 shadow-[3px_0_0_#ff5724_inset]">
+        <div
+          className={cn(
+            "flex flex-col gap-4 rounded-lg p-5 shadow-[3px_0_0_#ff5724_inset]",
+            suggestion.added ? "bg-gradient-to-r from-[#f8e2ef] to-[#f8e9e4]" : "bg-white",
+          )}
+        >
           <div className="flex items-center gap-3">
             <span className="text-base font-medium text-[#132939]/90">{suggestion.title}</span>
             {suggestion.added && (
-              <span className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#f8e2ef] to-[#f8e9e4] px-2 py-0.5 text-xs font-medium">
+              <span className="flex items-center gap-1.5 rounded-full bg-white px-2 py-0.5 text-xs font-medium">
                 <span className="bg-gradient-to-r from-[#d75ba5] to-[#ff5724] bg-clip-text font-bold text-transparent">
                   ✓
                 </span>
@@ -1755,7 +1760,16 @@ function SuggestionCarousel({
                   onClick={onOpenView}
                   className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-[7px] bg-white"
                 >
-                  <Eye className="h-[18px] w-[18px] text-[#ff5724]" />
+                  <svg width="0" height="0" className="absolute">
+                    <linearGradient id="suggestionViewIconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#d75ba5" />
+                      <stop offset="100%" stopColor="#ff5724" />
+                    </linearGradient>
+                  </svg>
+                  <Eye
+                    className="h-[18px] w-[18px]"
+                    stroke="url(#suggestionViewIconGradient)"
+                  />
                 </button>
               </div>
             )}
