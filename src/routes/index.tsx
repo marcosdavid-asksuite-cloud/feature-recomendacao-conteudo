@@ -181,11 +181,11 @@ const INITIAL_CONFLICTS: Conflict[] = [
   },
 ];
 
-const INITIAL_SUGGESTIONS: Suggestion[] = [
+const RAW_SUGGESTIONS: Suggestion[] = [
   {
     id: 1,
     title: "Informações de check-in e check-out",
-    occurrences: 142,
+    occurrences: 28,
     oldest: "09/08/2026",
     newest: "24/08/2026",
     added: false,
@@ -200,7 +200,7 @@ const INITIAL_SUGGESTIONS: Suggestion[] = [
   {
     id: 2,
     title: "Política de pets",
-    occurrences: 87,
+    occurrences: 24,
     oldest: "02/08/2026",
     newest: "22/08/2026",
     added: false,
@@ -215,7 +215,7 @@ const INITIAL_SUGGESTIONS: Suggestion[] = [
   {
     id: 3,
     title: "Acessibilidade e acesso PCD",
-    occurrences: 41,
+    occurrences: 14,
     oldest: "05/08/2026",
     newest: "18/08/2026",
     added: false,
@@ -230,7 +230,7 @@ const INITIAL_SUGGESTIONS: Suggestion[] = [
   {
     id: 4,
     title: "Café da manhã e opções alimentares",
-    occurrences: 118,
+    occurrences: 27,
     oldest: "03/08/2026",
     newest: "23/08/2026",
     added: false,
@@ -245,7 +245,7 @@ const INITIAL_SUGGESTIONS: Suggestion[] = [
   {
     id: 5,
     title: "Estacionamento e manobrista",
-    occurrences: 96,
+    occurrences: 22,
     oldest: "01/08/2026",
     newest: "21/08/2026",
     added: false,
@@ -260,7 +260,7 @@ const INITIAL_SUGGESTIONS: Suggestion[] = [
   {
     id: 6,
     title: "Wi-fi e conectividade nos quartos",
-    occurrences: 74,
+    occurrences: 19,
     oldest: "04/08/2026",
     newest: "20/08/2026",
     added: false,
@@ -275,7 +275,7 @@ const INITIAL_SUGGESTIONS: Suggestion[] = [
   {
     id: 7,
     title: "Piscina e horário de funcionamento",
-    occurrences: 65,
+    occurrences: 17,
     oldest: "06/08/2026",
     newest: "25/08/2026",
     added: false,
@@ -290,7 +290,7 @@ const INITIAL_SUGGESTIONS: Suggestion[] = [
   {
     id: 8,
     title: "Política de cancelamento e reembolso",
-    occurrences: 58,
+    occurrences: 16,
     oldest: "02/08/2026",
     newest: "19/08/2026",
     added: false,
@@ -305,7 +305,7 @@ const INITIAL_SUGGESTIONS: Suggestion[] = [
   {
     id: 9,
     title: "Transporte e transfer do aeroporto",
-    occurrences: 53,
+    occurrences: 15,
     oldest: "05/08/2026",
     newest: "22/08/2026",
     added: false,
@@ -320,7 +320,7 @@ const INITIAL_SUGGESTIONS: Suggestion[] = [
   {
     id: 10,
     title: "Academia e área de bem-estar",
-    occurrences: 47,
+    occurrences: 18,
     oldest: "07/08/2026",
     newest: "24/08/2026",
     added: false,
@@ -335,7 +335,7 @@ const INITIAL_SUGGESTIONS: Suggestion[] = [
   {
     id: 11,
     title: "Formas de pagamento aceitas",
-    occurrences: 44,
+    occurrences: 13,
     oldest: "03/08/2026",
     newest: "21/08/2026",
     added: false,
@@ -350,7 +350,7 @@ const INITIAL_SUGGESTIONS: Suggestion[] = [
   {
     id: 12,
     title: "Berço e itens para bebês",
-    occurrences: 36,
+    occurrences: 12,
     oldest: "06/08/2026",
     newest: "20/08/2026",
     added: false,
@@ -365,7 +365,7 @@ const INITIAL_SUGGESTIONS: Suggestion[] = [
   {
     id: 13,
     title: "Serviço de lavanderia",
-    occurrences: 31,
+    occurrences: 11,
     oldest: "08/08/2026",
     newest: "23/08/2026",
     added: false,
@@ -380,7 +380,7 @@ const INITIAL_SUGGESTIONS: Suggestion[] = [
   {
     id: 14,
     title: "Guarda-volumes após o check-out",
-    occurrences: 27,
+    occurrences: 10,
     oldest: "09/08/2026",
     newest: "22/08/2026",
     added: false,
@@ -395,7 +395,7 @@ const INITIAL_SUGGESTIONS: Suggestion[] = [
   {
     id: 15,
     title: "Eventos e espaços para reuniões",
-    occurrences: 22,
+    occurrences: 20,
     oldest: "10/08/2026",
     newest: "24/08/2026",
     added: false,
@@ -408,6 +408,33 @@ const INITIAL_SUGGESTIONS: Suggestion[] = [
     ],
   },
 ];
+
+function expandOccurrences(
+  occList: Occurrence[],
+  targetCount: number,
+  oldest: string,
+  newest: string,
+): Occurrence[] {
+  if (occList.length >= targetCount) return occList.slice(0, targetCount);
+
+  const start = parseBRDate(oldest);
+  const end = parseBRDate(newest);
+  const totalDays = Math.max(1, Math.round((end.getTime() - start.getTime()) / 86400000));
+
+  const result = [...occList];
+  for (let i = occList.length; i < targetCount; i++) {
+    const template = occList[i % occList.length]!.q;
+    const dayOffset = Math.round((i * totalDays) / targetCount);
+    result.push({ q: template, t: formatDateBR(addDays(start, dayOffset)) });
+  }
+
+  return result.sort((a, b) => parseBRDate(b.t).getTime() - parseBRDate(a.t).getTime());
+}
+
+const INITIAL_SUGGESTIONS: Suggestion[] = RAW_SUGGESTIONS.map((s) => ({
+  ...s,
+  occList: expandOccurrences(s.occList, s.occurrences, s.oldest, s.newest),
+}));
 
 const UNANSWERED_MESSAGE_TEMPLATES = [
   "Qual o horário de check-in e check-out?",
@@ -1755,23 +1782,18 @@ function SuggestionCarousel({
             )}
             <div className="flex-1" />
             {suggestion.added && (
-              <div className="inline-flex rounded-lg bg-gradient-to-r from-[#d75ba5] to-[#ff5724] p-px">
-                <button
-                  onClick={onOpenView}
-                  className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-[7px] bg-white"
-                >
-                  <svg width="0" height="0" className="absolute">
-                    <linearGradient id="suggestionViewIconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#d75ba5" />
-                      <stop offset="100%" stopColor="#ff5724" />
-                    </linearGradient>
-                  </svg>
-                  <Eye
-                    className="h-[18px] w-[18px]"
-                    stroke="url(#suggestionViewIconGradient)"
-                  />
-                </button>
-              </div>
+              <button
+                onClick={onOpenView}
+                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-white"
+              >
+                <svg width="0" height="0" className="absolute">
+                  <linearGradient id="suggestionViewIconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#d75ba5" />
+                    <stop offset="100%" stopColor="#ff5724" />
+                  </linearGradient>
+                </svg>
+                <Eye className="h-[18px] w-[18px]" stroke="url(#suggestionViewIconGradient)" />
+              </button>
             )}
           </div>
 
@@ -1863,7 +1885,10 @@ function SuggestionStepDot({
     return (
       <button
         onClick={onClick}
-        className="flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-[#132939]/40"
+        className={cn(
+          "flex h-4 w-4 cursor-pointer items-center justify-center rounded-full",
+          isCurrent ? "bg-gradient-to-r from-[#d75ba5] to-[#ff5724]" : "bg-[#132939]/40",
+        )}
       >
         <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
       </button>
