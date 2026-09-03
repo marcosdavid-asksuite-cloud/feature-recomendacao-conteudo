@@ -29,7 +29,6 @@ import {
   Link2,
   Loader2,
   MessageSquare,
-  MessageSquareX,
   Pencil,
   PenLine,
   Plus,
@@ -980,7 +979,11 @@ function Index() {
                     <Search className="ml-auto h-5 w-5 cursor-pointer text-[#132939]/90" />
                   </div>
 
-                  <MonthlyAnalysisBanner suggestionsCount={suggestions.length} />
+                  <MonthlyAnalysisBanner
+                    suggestionsCount={suggestions.length}
+                    unreviewedCount={filteredMsgs.length}
+                    onReviewIndividually={() => setMsgsReviewOpen(true)}
+                  />
 
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center justify-between">
@@ -1640,7 +1643,15 @@ function ConflictSourceCard({
   );
 }
 
-function MonthlyAnalysisBanner({ suggestionsCount }: { suggestionsCount: number }) {
+function MonthlyAnalysisBanner({
+  suggestionsCount,
+  unreviewedCount,
+  onReviewIndividually,
+}: {
+  suggestionsCount: number;
+  unreviewedCount: number;
+  onReviewIndividually: () => void;
+}) {
   return (
     <div className="flex overflow-hidden rounded-lg border border-[#01111e]/10 bg-white">
       <div className="flex w-16 flex-shrink-0 items-center justify-center bg-gradient-to-b from-[#f7deed] to-[#fde3d9]">
@@ -1657,51 +1668,44 @@ function MonthlyAnalysisBanner({ suggestionsCount }: { suggestionsCount: number 
         />
       </div>
       <div className="flex flex-1 flex-col gap-6 px-5 py-5">
-        <div className="flex items-center gap-2">
-          <span className="bg-gradient-to-r from-[#d75ba5] to-[#ff5724] bg-clip-text text-[11px] font-bold tracking-wide text-transparent">
-            AGOSTO 2026
-          </span>
-          <Badge className="rounded-full border-transparent bg-gradient-to-r from-[#f7deed] to-[#fde3d9] text-[11px] font-bold tracking-wide text-[#9e3d6e] hover:from-[#f7deed] hover:to-[#fde3d9]">
-            Análise concluída
-          </Badge>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Info className="h-3.5 w-3.5 cursor-help text-[#132939]/50" />
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs">
-              Todos os meses, a Sophia analisa uma quantidade de mensagens não entendidas para
-              gerar sugestões de conteúdo baseadas em tópicos que foram muito perguntados mas não
-              tinham conteúdo cadastrado.
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Download
-                onClick={() => toast("Baixando relatório em PDF...")}
-                className="ml-auto h-[18px] w-[18px] cursor-pointer text-[#132939]/50"
-              />
-            </TooltipTrigger>
-            <TooltipContent>Baixar PDF</TooltipContent>
-          </Tooltip>
-        </div>
-        <span className="text-[13px] text-[#616e7c]">
-          Análise mensal de mensagens não entendidas
-        </span>
-        <div className="flex items-center gap-10">
-          <div className="flex flex-1 items-center gap-3">
-            <MessageSquareX className="h-5 w-5 text-[#132939]/50" />
-            <div className="flex flex-col">
-              <span className="text-xl font-semibold text-[#132939]/90">2000</span>
-              <span className="text-xs text-[#616e7c]">Mensagens não entendidas</span>
-            </div>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <span className="bg-gradient-to-r from-[#d75ba5] to-[#ff5724] bg-clip-text text-[11px] font-bold tracking-wide text-transparent">
+              ANÁLISE MENSAL
+            </span>
+            <Badge className="rounded-full border-transparent bg-gradient-to-r from-[#f7deed] to-[#fde3d9] text-[11px] font-bold tracking-wide text-[#9e3d6e] hover:from-[#f7deed] hover:to-[#fde3d9]">
+              AGOSTO 2026
+            </Badge>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="h-3.5 w-3.5 cursor-help text-[#132939]/50" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                Todos os meses, a Sophia analisa uma quantidade de mensagens não entendidas para
+                gerar sugestões de conteúdo baseadas em tópicos que foram muito perguntados mas
+                não tinham conteúdo cadastrado.
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Download
+                  onClick={() => toast("Baixando relatório em PDF...")}
+                  className="ml-auto h-[18px] w-[18px] cursor-pointer text-[#132939]/50"
+                />
+              </TooltipTrigger>
+              <TooltipContent>Baixar PDF</TooltipContent>
+            </Tooltip>
           </div>
-          <div className="h-8 w-px bg-[#01111e]/10" />
+          <span className="text-[13px] text-[#616e7c]">
+            Análise das mensagens que a Sophia não entendeu e que não receberam tratativa no
+            período
+          </span>
+        </div>
+        <div className="flex items-center gap-10">
           <div className="flex flex-1 items-center gap-3">
             <MessageSquare className="h-5 w-5 text-[#132939]/50" />
             <div className="flex flex-col">
-              <span className="text-xl font-semibold text-[#132939]/90">
-                500 <span className="text-[13px] font-normal text-[#132939]/50">de 1029</span>
-              </span>
+              <span className="text-xl font-semibold text-[#132939]/90">500</span>
               <span className="text-xs text-[#616e7c]">Mensagens analisadas</span>
             </div>
           </div>
@@ -1728,6 +1732,17 @@ function MonthlyAnalysisBanner({ suggestionsCount }: { suggestionsCount: number 
               Próxima análise: <strong>01/10/2026</strong>
             </span>
           </div>
+        </div>
+        <div className="flex items-center justify-between border-t border-[#01111e]/10 pt-4">
+          <span className="text-[13px] text-[#132939]/75">
+            {unreviewedCount} Mensagens não analisadas
+          </span>
+          <button
+            onClick={onReviewIndividually}
+            className="flex cursor-pointer items-center gap-0.5 text-[13px] font-medium text-[#ff5724]"
+          >
+            Revisar individualmente <ChevronRight className="h-4 w-4" />
+          </button>
         </div>
       </div>
     </div>
