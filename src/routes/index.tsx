@@ -29,6 +29,7 @@ import {
   Link2,
   Loader2,
   MessageSquare,
+  MessageSquareX,
   Pencil,
   PenLine,
   Plus,
@@ -1687,6 +1688,14 @@ function MonthlyAnalysisBanner({ suggestionsCount }: { suggestionsCount: number 
           Análise mensal de mensagens não entendidas
         </span>
         <div className="flex items-center gap-10">
+          <div className="flex flex-1 items-center gap-3">
+            <MessageSquareX className="h-5 w-5 text-[#132939]/50" />
+            <div className="flex flex-col">
+              <span className="text-xl font-semibold text-[#132939]/90">2000</span>
+              <span className="text-xs text-[#616e7c]">Mensagens não entendidas</span>
+            </div>
+          </div>
+          <div className="h-8 w-px bg-[#01111e]/10" />
           <div className="flex flex-1 items-center gap-3">
             <MessageSquare className="h-5 w-5 text-[#132939]/50" />
             <div className="flex flex-col">
