@@ -42,6 +42,7 @@ import {
   Sparkles,
   Tag,
   Trash2,
+  TrendingUp,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -549,6 +550,8 @@ function hasPlaceholder(text: string): boolean {
 
 const INITIAL_MSGS: Msg[] = Array.from({ length: 529 }, (_, index) => buildUnansweredMessage(index));
 
+const TOTAL_RECEIVED_MESSAGES_30_DAYS = 49339;
+
 type DataHubAction = "refresh" | "download" | "eye" | "gear" | "trash";
 
 type DataHubContentOrigin = { type: "message"; sourceText: string } | { type: "ai_suggestion" };
@@ -705,6 +708,9 @@ function Index() {
 
   const filteredConflicts = conflicts.filter((c) => isWithinPeriod(c.date, period));
   const filteredMsgs = msgs.filter((m) => isWithinPeriod(m.date, period));
+  const receivedCount = Math.round(TOTAL_RECEIVED_MESSAGES_30_DAYS * (filteredMsgs.length / msgs.length));
+  const understandingRate =
+    receivedCount > 0 ? Math.round(((receivedCount - filteredMsgs.length) / receivedCount) * 100) : 100;
 
   function navigateTo(page: "analytics" | "dataHub") {
     setActivePage(page);
@@ -1004,6 +1010,27 @@ function Index() {
                       </TooltipContent>
                     </Tooltip>
                     <Search className="ml-auto h-5 w-5 cursor-pointer text-[#132939]/90" />
+                  </div>
+
+                  <div className="flex gap-3">
+                    <StatPill
+                      icon={<MessageSquare className="h-[22px] w-[22px] text-[#132939]/75" />}
+                      bg="bg-[#01111e]/[0.06]"
+                      value={receivedCount}
+                      label="MENSAGENS RECEBIDAS"
+                    />
+                    <StatPill
+                      icon={<CheckCircle2 className="h-[22px] w-[22px] text-[#9e3d22]" />}
+                      bg="bg-[#fde3d9]"
+                      value={filteredMsgs.length}
+                      label="NÃO ENTENDIDAS"
+                    />
+                    <StatPill
+                      icon={<TrendingUp className="h-[22px] w-[22px] text-[#279661]" />}
+                      bg="bg-[#dcf5e6]"
+                      value={`${understandingRate}%`}
+                      label="TAXA DE ENTENDIMENTO"
+                    />
                   </div>
 
                   <MonthlyAnalysisBanner
@@ -1494,7 +1521,7 @@ function StatPill({
 }: {
   icon: React.ReactNode;
   bg: string;
-  value: number;
+  value: number | string;
   label: string;
 }) {
   return (
@@ -1764,7 +1791,7 @@ function SuggestionCarousel({
       <div className="rounded-[9px] bg-gradient-to-r from-[#f3cee4] to-[#fad0c4] p-px">
         <div
           className={cn(
-            "flex flex-col gap-4 rounded-lg p-5 shadow-[3px_0_0_#ff5724_inset]",
+            "flex flex-col gap-4 rounded-lg p-5",
             suggestion.added ? "bg-gradient-to-r from-[#f8e2ef] to-[#f8e9e4]" : "bg-white",
           )}
         >
