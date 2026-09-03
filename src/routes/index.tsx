@@ -1030,47 +1030,6 @@ function Index() {
                     )}
                   </div>
 
-                  <div className="h-px bg-[#01111e]/10" />
-
-                  <div className="flex flex-col gap-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-base font-medium text-[#132939]/90">
-                          Mensagens disponíveis para revisão manual
-                        </span>
-                        <span className="text-[13px] text-[#616e7c]">
-                          Mensagens que não foram analisadas no relatório mensal e podem ser
-                          revisadas manualmente.
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <MessageSquare className="h-5 w-5 text-[#132939]/50" />
-                        <span className="text-xl font-medium text-[#132939]/90">
-                          {filteredMsgs.length}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="overflow-hidden rounded border border-[#01111e]/10 bg-white">
-                      <MessageTableHeader />
-                      {filteredMsgs.slice(0, 5).map((m) => (
-                        <MessageRow
-                          key={m.id}
-                          msg={m}
-                          onToggle={toggleMsg}
-                          onAddContent={openAddContentPage}
-                          onDelete={deleteMsg}
-                        />
-                      ))}
-                    </div>
-
-                    <button
-                      onClick={() => setMsgsReviewOpen(true)}
-                      className="mx-auto mt-2 flex items-center gap-0.5 text-[13px] font-medium text-[#132939] cursor-pointer"
-                    >
-                      Ver todas <ChevronRight className="h-4 w-4" />
-                    </button>
-                  </div>
                 </div>
               </>
             ) : (
@@ -1734,15 +1693,17 @@ function MonthlyAnalysisBanner({
           </div>
         </div>
         <div className="flex items-center justify-between border-t border-[#01111e]/10 pt-4">
-          <span className="text-[13px] text-[#132939]/75">
-            {unreviewedCount} Mensagens não analisadas
+          <span className="text-base text-[#132939]/75">
+            <span className="font-semibold text-[#ff5724]">{unreviewedCount}</span> Mensagens não
+            analisadas
           </span>
-          <button
+          <Button
+            size="sm"
             onClick={onReviewIndividually}
-            className="flex cursor-pointer items-center gap-0.5 text-[13px] font-medium text-[#ff5724]"
+            className="gap-1.5 bg-[#ff5724] text-white hover:bg-[#ff5724]/90"
           >
             Revisar individualmente <ChevronRight className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
       </div>
     </div>
