@@ -1697,13 +1697,12 @@ function MonthlyAnalysisBanner({
             <span className="font-semibold text-[#ff5724]">{unreviewedCount}</span> Mensagens não
             analisadas
           </span>
-          <Button
-            size="sm"
+          <button
             onClick={onReviewIndividually}
-            className="gap-1.5 bg-[#ff5724] text-white hover:bg-[#ff5724]/90"
+            className="flex cursor-pointer items-center gap-0.5 text-[13px] font-medium text-[#ff5724]"
           >
             Revisar individualmente <ChevronRight className="h-4 w-4" />
-          </Button>
+          </button>
         </div>
       </div>
     </div>
