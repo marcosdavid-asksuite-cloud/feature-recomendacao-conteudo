@@ -499,9 +499,39 @@ function addDays(date: Date, days: number): Date {
   return d;
 }
 
+// Not-understood messages per day offset (0 = today), for the last 30 days.
+// Today carries a deliberate spike (an unusual confusion peak) so the
+// understanding rate visibly shifts depending on the selected period,
+// instead of always landing on the same percentage.
+const DAY_NOT_UNDERSTOOD_COUNTS = [
+  60, 20, 14, 18, 13, 21, 15, 10, 23, 14, 18, 12, 20, 16, 11, 22, 13, 17, 12, 19, 15, 10, 23, 14,
+  18, 12, 20, 16, 11, 22,
+];
+
+// Total messages received per day offset, for the last 30 days.
+const DAY_RECEIVED_COUNTS = [
+  1500, 1800, 2201, 1902, 1301, 1001, 1251, 1601, 2102, 2402, 2002, 1401, 1051, 801, 1551, 2252,
+  2452, 2102, 1451, 651, 901, 1601, 2302, 2502, 2152, 1501, 701, 901, 1651, 2352,
+];
+
+const MESSAGE_DAY_SCHEDULE: number[] = DAY_NOT_UNDERSTOOD_COUNTS.flatMap((count, offset) =>
+  Array.from({ length: count }, () => offset),
+);
+
+function computeReceivedCount(period: string): number {
+  let total = 0;
+  for (let offset = 0; offset < DAY_RECEIVED_COUNTS.length; offset++) {
+    const date = addDays(TODAY, -offset);
+    if (isWithinPeriod(formatDateBR(date), period)) {
+      total += DAY_RECEIVED_COUNTS[offset]!;
+    }
+  }
+  return total;
+}
+
 function buildUnansweredMessage(index: number): Msg {
   const template = UNANSWERED_MESSAGE_TEMPLATES[index % UNANSWERED_MESSAGE_TEMPLATES.length]!;
-  const dayOffset = index % 30;
+  const dayOffset = MESSAGE_DAY_SCHEDULE[index % MESSAGE_DAY_SCHEDULE.length]!;
   const date = addDays(TODAY, -dayOffset);
   const hour = String(6 + (index % 16)).padStart(2, "0");
   const minute = String((index * 7) % 60).padStart(2, "0");
@@ -549,8 +579,6 @@ function hasPlaceholder(text: string): boolean {
 }
 
 const INITIAL_MSGS: Msg[] = Array.from({ length: 529 }, (_, index) => buildUnansweredMessage(index));
-
-const TOTAL_RECEIVED_MESSAGES_30_DAYS = 49339;
 
 type DataHubAction = "refresh" | "download" | "eye" | "gear" | "trash";
 
@@ -708,7 +736,7 @@ function Index() {
 
   const filteredConflicts = conflicts.filter((c) => isWithinPeriod(c.date, period));
   const filteredMsgs = msgs.filter((m) => isWithinPeriod(m.date, period));
-  const receivedCount = Math.round(TOTAL_RECEIVED_MESSAGES_30_DAYS * (filteredMsgs.length / msgs.length));
+  const receivedCount = computeReceivedCount(period);
   const understandingRate =
     receivedCount > 0 ? Math.round(((receivedCount - filteredMsgs.length) / receivedCount) * 100) : 100;
 
