@@ -1037,7 +1037,6 @@ function Index() {
                         atendimentos.
                       </TooltipContent>
                     </Tooltip>
-                    <Search className="ml-auto h-5 w-5 cursor-pointer text-[#132939]/90" />
                   </div>
 
                   <div className="flex gap-3">
@@ -1048,14 +1047,14 @@ function Index() {
                       label="MENSAGENS RECEBIDAS"
                     />
                     <StatPill
-                      icon={<CheckCircle2 className="h-[22px] w-[22px] text-[#9e3d22]" />}
-                      bg="bg-[#fde3d9]"
+                      icon={<CheckCircle2 className="h-[22px] w-[22px] text-[#132939]/75" />}
+                      bg="bg-[#01111e]/[0.06]"
                       value={filteredMsgs.length}
                       label="NÃO ENTENDIDAS"
                     />
                     <StatPill
-                      icon={<TrendingUp className="h-[22px] w-[22px] text-[#279661]" />}
-                      bg="bg-[#dcf5e6]"
+                      icon={<TrendingUp className="h-[22px] w-[22px] text-[#132939]/75" />}
+                      bg="bg-[#01111e]/[0.06]"
                       value={`${understandingRate}%`}
                       label="TAXA DE ENTENDIMENTO"
                     />
