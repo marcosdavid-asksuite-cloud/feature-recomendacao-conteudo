@@ -1721,9 +1721,9 @@ function MonthlyAnalysisBanner({
                 <Info className="h-3.5 w-3.5 cursor-help text-[#132939]/50" />
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
-                Todos os meses, a Sophia analisa uma quantidade de mensagens não entendidas para
-                gerar sugestões de conteúdo baseadas em tópicos que foram muito perguntados mas
-                não tinham conteúdo cadastrado.
+                Todos os meses, a Sophia analisa mensagens não entendidas e não revisadas
+                manualmente para identificar os tópicos mais recorrentes e sugerir conteúdos que
+                preencham lacunas na Base de Conhecimento.
               </TooltipContent>
             </Tooltip>
             <Tooltip>
